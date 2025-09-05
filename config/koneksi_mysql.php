@@ -2,7 +2,7 @@
 $server = "localhost";
 $user   = "root";
 $pass   = "";
-$database = "sistem_rab";
+$database = "si_resto";
 
 $koneksi = mysqli_connect($server, $user, $pass, $database);
 
