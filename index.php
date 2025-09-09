@@ -44,14 +44,11 @@ include("config/koneksi_mysql.php");
           }
         ?>
         <!-- ================== PERUBAHAN UTAMA ================== -->
-        <!-- 1. Tipe input diubah menjadi "text" -->
-        <!-- 2. Nama input diubah menjadi "username" -->
         <!-- 3. Placeholder diubah -->
         <input type="text" name="username" placeholder="Enter your username" required>
         <!-- ======================================================= -->
         
         <input type="password" name="password" placeholder="Enter your password" required>
-        <a href="#">Forgot password?</a>
         <input type="submit" class="button" value="Login">
       </form>
     </div>
