@@ -106,6 +106,14 @@ function is_active($pages, $current_page) {
                     </a>
                 </li>
 
+                <li class="nav-section">
+                    <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
+                    <h4 class="text-section">Bill of Materials (BOM)</h4>
+                </li>
+                <li class="nav-item <?= is_active(['bom.php'], $current_page) ?>">
+                    <a href="bom.php"><i class="fas fa-sitemap"></i><p>Master BOM</p></a>
+                </li>
+
                 <!-- ======================================================= -->
                 <!-- 4. Grup Menu Master Data (SUDAH DIPERBAIKI)           -->
                 <!-- ======================================================= -->
@@ -122,6 +130,15 @@ function is_active($pages, $current_page) {
                 </li>
                 <li class="nav-item <?= is_active(['master_karyawan.php'], $current_page) ?>">
                     <a href="master_karyawan.php"><i class="fas fa-users-cog"></i><p>Master Karyawan</p></a>
+                </li>
+                 <li class="nav-item <?= is_active(['master_satuan.php'], $current_page) ?>">
+                    <a href="master_satuan.php"><i class="fas fa-ruler-combined"></i><p>Master Satuan</p></a>
+                </li>
+                <li class="nav-item <?= is_active(['master_kategori.php'], $current_page) ?>">
+                    <a href="master_kategori.php"><i class="fas fa-tags"></i><p>Master Kategori</p></a>
+                </li>
+                <li class="nav-item <?= is_active(['master_item.php'], $current_page) ?>">
+                    <a href="master_item.php"><i class="fas fa-boxes"></i><p>Master Item</p></a>
                 </li>
                 </ul>
         </div>
