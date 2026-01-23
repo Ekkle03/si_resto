@@ -1,11 +1,13 @@
 <?php
-// Mulai session
 session_start();
-
-// Koneksi database
 include("../config/koneksi_mysql.php");
 
-// Ambil data bahan setengah jadi (join ke satuan & kategori)
+// 1. Ambil ID Induk Kategori BSJ (Pastikan Nama Kategori di DB sama persis)
+$cek_induk = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'BAHAN ½ JADI' LIMIT 1");
+$data_induk = mysqli_fetch_assoc($cek_induk);
+$id_induk_bsj = $data_induk['id_kategori'] ?? 0;
+
+// 2. Query List Data
 $sql = "SELECT bsj.*, s.nama_satuan, k.nama_kategori
         FROM master_bahan_setengah_jadi bsj
         INNER JOIN master_satuan s ON bsj.id_satuan = s.id_satuan
@@ -13,6 +15,7 @@ $sql = "SELECT bsj.*, s.nama_satuan, k.nama_kategori
         ORDER BY bsj.id_bsj ASC";
 $result = mysqli_query($koneksi, $sql);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -104,71 +107,65 @@ $result = mysqli_query($koneksi, $sql);
         <div class="container">
             <div class="page-inner">
                 <div class="page-header">
-                    <h3 class="fw-bold mb-3">Master Data</h3>
+                    <h3 class="fw-bold mb-3">Master Bahan Setengah Jadi (BSJ)</h3>
                 </div>
 
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card">
                             <div class="card-header d-flex align-items-center">
-                                <h4 class="card-title">Data Master Bahan Setengah Jadi</h4>
-                                <button class="btn btn-outline-primary btn-outline-primary-thicker btn-round ms-auto"
-                                        data-bs-toggle="modal" data-bs-target="#addBsjModal">
+                                <h4 class="card-title">Data Master BSJ</h4>
+                                <button class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#addBsjModal">
                                     <i class="fa fa-plus"></i> Tambah Data
                                 </button>
                             </div>
                             <div class="card-body">
                                 <?php if (isset($_GET['msg'])): ?>
                                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                        <?= htmlspecialchars($_GET['msg']) ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        <i class="fas fa-check-circle me-1"></i> <?= htmlspecialchars($_GET['msg']) ?>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                     </div>
                                 <?php endif; ?>
 
                                 <div class="table-responsive">
                                     <table id="basic-datatables" class="table table-striped table-bordered table-hover align-middle">
-                                        <thead>
-                                        <tr>
-                                            <th style="width: 6%;" class="text-center">NO</th>
-                                            <th style="width: 16%; text-align:center;">KODE BAHAN</th>
-                                            <th>Nama Bahan</th>
-                                            <th style="width: 15%; text-align:center;">Satuan</th>
-                                            <th style="width: 18%; text-align:center;">Kategori</th>
-                                            <th style="width: 10%; text-align:center;">Tahap</th>
-                                            <th style="width: 14%;" class="text-center">Action</th>
-                                        </tr>
+                                        <thead class="text-center">
+                                            <tr>
+                                                <th>NO</th>
+                                                <th>KODE</th>
+                                                <th class="text-start">NAMA BAHAN</th>
+                                                <th>SATUAN</th>
+                                                <th>KATEGORI</th>
+                                                <th>TAHAP</th>
+                                                <th>ACTION</th>
+                                            </tr>
                                         </thead>
                                         <tbody>
-                                        <?php
-                                        $no = 1;
-                                        while ($row = mysqli_fetch_assoc($result)): ?>
-                                            <tr>
-                                                <td class="text-center"><?= $no++; ?></td>
-                                                <td class="text-center"><?= htmlspecialchars($row['kode_bsj']) ?></td>
-                                                <td><?= htmlspecialchars($row['nama_bsj']) ?></td>
-                                                <td class="text-center"><?= htmlspecialchars($row['nama_satuan']) ?></td>
-                                                <td class="text-center"><?= htmlspecialchars($row['nama_kategori']) ?></td>
+                                        <?php $no = 1; while ($row = mysqli_fetch_assoc($result)): ?>
+                                            <tr class="text-center">
+                                                <td><?= $no++; ?></td>
+                                                <td><?= htmlspecialchars($row['kode_bsj']) ?></td>
+                                                <td class="text-start fw-bold"><?= htmlspecialchars($row['nama_bsj']) ?></td>
+                                                <td><?= htmlspecialchars($row['nama_satuan']) ?></td>
+                                                <td><?= htmlspecialchars($row['nama_kategori']) ?></td>
                                                 <td class="text-center">
-                                                    <?= $row['tahap'] === 'bsj2' ? 'BSJ 2' : 'BSJ 1' ?>
+                                                    <span class="badge <?= $row['tahap'] === 'bsj2' ? 'badge-t2' : 'badge-t1' ?>" 
+                                                        style="color: #2a2f5b !important; font-weight: bold; font-family: inherit;">
+                                                        <?= $row['tahap'] === 'bsj2' ? 'Tahap 2' : 'Tahap 1' ?>
+                                                    </span>
                                                 </td>
-                                                <td class="text-center">
+                                                <td>
                                                     <div class="form-button-action">
-                                                        <button type="button"
-                                                                class="btn btn-primary btn-sm btn-update"
-                                                                data-bs-toggle="tooltip"
-                                                                title="Edit Data"
-                                                                data-id_bsj="<?= htmlspecialchars($row['id_bsj']) ?>"
+                                                        <button type="button" class="btn btn-primary btn-sm btn-update me-1"
+                                                                data-id_bsj="<?= $row['id_bsj'] ?>"
                                                                 data-nama_bsj="<?= htmlspecialchars($row['nama_bsj']) ?>"
-                                                                data-id_satuan="<?= htmlspecialchars($row['id_satuan']) ?>"
-                                                                data-id_kategori="<?= htmlspecialchars($row['id_kategori']) ?>"
-                                                                data-tahap="<?= htmlspecialchars($row['tahap']) ?>">
+                                                                data-id_satuan="<?= $row['id_satuan'] ?>"
+                                                                data-id_kategori="<?= $row['id_kategori'] ?>"
+                                                                data-tahap="<?= $row['tahap'] ?>">
                                                             <i class="fa fa-edit"></i>
                                                         </button>
-                                                        <button type="button"
-                                                                class="btn btn-danger btn-sm btn-delete"
-                                                                data-bs-toggle="tooltip"
-                                                                title="Hapus Data"
-                                                                data-id_bsj="<?= htmlspecialchars($row['id_bsj']) ?>">
+                                                        <button type="button" class="btn btn-danger btn-sm btn-delete"
+                                                                data-id_bsj="<?= $row['id_bsj'] ?>">
                                                             <i class="fa fa-times"></i>
                                                         </button>
                                                     </div>
@@ -178,142 +175,128 @@ $result = mysqli_query($koneksi, $sql);
                                         </tbody>
                                     </table>
                                 </div>
-
                             </div>
-                        </div><!-- card -->
+                        </div>
                     </div>
-                </div><!-- row -->
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ================== Modals ================== -->
-
-<!-- Tambah -->
-<div class="modal fade" id="addBsjModal" tabindex="-1" aria-labelledby="addBsjModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="addBsjModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="add_bahan_setengahjadi.php">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addBsjModalLabel">Tambah Data Bahan Setengah Jadi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Tambah Data Bahan Setengah Jadi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-
-                    <div class="mb-3">
-                        <label class="form-label">Nama Bahan Setengah Jadi</label>
-                        <input type="text"
-                               class="form-control"
-                               name="nama_bsj"
-                               placeholder="Masukkan nama bahan"
-                               required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Satuan</label>
-                        <select class="form-select" name="id_satuan" required>
-                            <option value="" disabled selected>-- Pilih Satuan --</option>
-                            <?php
-                            $satuan = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
-                            while ($s = mysqli_fetch_assoc($satuan)): ?>
-                                <option value="<?= htmlspecialchars($s['id_satuan']) ?>">
-                                    <?= htmlspecialchars($s['nama_satuan']) ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Kategori</label>
-                        <select class="form-select" name="id_kategori" required>
-                            <option value="" disabled selected>-- Pilih Kategori --</option>
-                            <?php
-                            $kategori = mysqli_query($koneksi, "SELECT id_kategori, nama_kategori FROM master_kategori ORDER BY nama_kategori ASC");
-                            while ($k = mysqli_fetch_assoc($kategori)): ?>
-                                <option value="<?= htmlspecialchars($k['id_kategori']) ?>">
-                                    <?= htmlspecialchars($k['nama_kategori']) ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Tahap</label>
-                        <select class="form-select" name="tahap" required>
-                            <option value="" disabled selected>-- Pilih Tahap --</option>
-                            <option value="bsj1">BSJ 1</option>
-                            <option value="bsj2">BSJ 2</option>
-                        </select>
-                    </div>
-
+                <div class="mb-3">
+                    <label class="form-label">Nama Bahan Setengah Jadi</label>
+                    <input type="text" class="form-control" name="nama_bsj" placeholder="Misal: Ayam Ungkep" required>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                <div class="mb-3">
+                    <label class="form-label">Satuan</label>
+                    <select class="form-select" name="id_satuan" required>
+                        <option value="" disabled selected>-- Pilih Satuan --</option>
+                        <?php
+                        $satuan = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
+                        while ($s = mysqli_fetch_assoc($satuan)) echo "<option value='".$s['id_satuan']."'>".$s['nama_satuan']."</option>";
+                        ?>
+                    </select>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label text-primary fw-bold">Kategori (Hanya Sub-BSJ)</label>
+                    <select class="form-select" name="id_kategori" id="update_id_kategori" required>
+                        <?php
+                        // Samakan persis kodenya dengan yang di Modal Add kamu
+                        $query_induk_up = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'Bahan Setengah Jadi' LIMIT 1");
+                        $data_induk_up = mysqli_fetch_assoc($query_induk_up);
+                        $id_parent_bsj_up = $data_induk_up['id_kategori'] ?? 0;
+
+                        $query_sub_up = mysqli_query($koneksi, "SELECT id_kategori, nama_kategori FROM master_kategori WHERE parent_id = '$id_parent_bsj_up' ORDER BY nama_kategori ASC");
+                        
+                        while ($sub_up = mysqli_fetch_assoc($query_sub_up)): ?>
+                            <option value="<?= $sub_up['id_kategori'] ?>">
+                                <?= htmlspecialchars($sub_up['nama_kategori']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tahap Produksi</label>
+                    <select class="form-select" name="tahap" required>
+                        <option value="bsj1">BSJ 1 (Olahan Dasar)</option>
+                        <option value="bsj2">BSJ 2 (Olahan Lanjutan)</option>
+                    </select>
+                </div>
+                <hr>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="langsung_bom" value="1" id="langsung_bom">
+                    <label class="form-check-label fw-bold" for="langsung_bom">
+                        Langsung buat resep (BOM) setelah simpan?
+                    </label>
+                </div>
+            </div> <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" id="btnSubmitAdd" class="btn btn-primary">Simpan</button>
+            </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Update -->
-<div class="modal fade" id="updateBsjModal" tabindex="-1" aria-labelledby="updateBsjModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="updateBsjModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="update_bahan_setengahjadi.php">
                 <input type="hidden" name="id_bsj" id="update_id_bsj">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="updateBsjModalLabel">Update Data Bahan Setengah Jadi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Update Data BSJ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-
                     <div class="mb-3">
                         <label class="form-label">Nama Bahan Setengah Jadi</label>
-                        <input type="text"
-                               class="form-control"
-                               name="nama_bsj"
-                               id="update_nama_bsj"
-                               required>
+                        <input type="text" class="form-control" name="nama_bsj" id="update_nama_bsj" required>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Satuan</label>
                         <select class="form-select" name="id_satuan" id="update_id_satuan" required>
-                            <option value="" disabled>-- Pilih Satuan --</option>
                             <?php
                             $satuan2 = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
-                            while ($s2 = mysqli_fetch_assoc($satuan2)): ?>
-                                <option value="<?= htmlspecialchars($s2['id_satuan']) ?>">
-                                    <?= htmlspecialchars($s2['nama_satuan']) ?>
-                                </option>
-                            <?php endwhile; ?>
+                            while ($s2 = mysqli_fetch_assoc($satuan2)) echo "<option value='".$s2['id_satuan']."'>".$s2['nama_satuan']."</option>";
+                            ?>
                         </select>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Kategori</label>
                         <select class="form-select" name="id_kategori" id="update_id_kategori" required>
-                            <option value="" disabled>-- Pilih Kategori --</option>
                             <?php
-                            $kategori2 = mysqli_query($koneksi, "SELECT id_kategori, nama_kategori FROM master_kategori ORDER BY nama_kategori ASC");
-                            while ($k2 = mysqli_fetch_assoc($kategori2)): ?>
-                                <option value="<?= htmlspecialchars($k2['id_kategori']) ?>">
-                                    <?= htmlspecialchars($k2['nama_kategori']) ?>
+                            // Cari ID induk Bahan Setengah Jadi
+                            $q_induk = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'Bahan Setengah Jadi' LIMIT 1");
+                            $d_induk = mysqli_fetch_assoc($q_induk);
+                            $parent_id = $d_induk['id_kategori'] ?? 0;
+
+                            // Ambil hanya sub-kategori (anak) dari Bahan Setengah Jadi
+                            $q_sub = mysqli_query($koneksi, "SELECT id_kategori, nama_kategori FROM master_kategori WHERE parent_id = '$parent_id' ORDER BY nama_kategori ASC");
+                            
+                            while ($sub = mysqli_fetch_assoc($q_sub)): ?>
+                                <option value="<?= $sub['id_kategori'] ?>">
+                                    <?= htmlspecialchars($sub['nama_kategori']) ?>
                                 </option>
                             <?php endwhile; ?>
                         </select>
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Tahap</label>
+                        <label class="form-label">Tahap Produksi</label>
                         <select class="form-select" name="tahap" id="update_tahap" required>
-                            <option value="bsj1">BSJ 1</option>
-                            <option value="bsj2">BSJ 2</option>
+                            <option value="bsj1">BSJ 1 (Olahan Dasar)</option>
+                            <option value="bsj2">BSJ 2 (Olahan Lanjutan)</option>
                         </select>
                     </div>
-
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -324,73 +307,75 @@ $result = mysqli_query($koneksi, $sql);
     </div>
 </div>
 
-<!-- Hapus -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Hapus</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title text-danger">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Apakah Anda yakin ingin menghapus bahan setengah jadi ini?</p>
+                Apakah Anda yakin ingin menghapus bahan ini? Seluruh data resep (BOM) terkait akan ikut terhapus secara otomatis.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <a href="#" id="confirmDeleteLink" class="btn btn-danger">Hapus</a>
+                <a href="#" id="confirmDeleteLink" class="btn btn-danger">Hapus Permanen</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Core JS Files -->
 <script src="assets/js/core/jquery-3.7.1.min.js"></script>
 <script src="assets/js/core/popper.min.js"></script>
 <script src="assets/js/core/bootstrap.min.js"></script>
-<script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
 <script src="assets/js/plugin/datatables/datatables.min.js"></script>
-<script src="assets/js/plugin/sweetalert/sweetalert.min.js"></script>
 <script src="assets/js/kaiadmin.min.js"></script>
 
 <script>
     $(document).ready(function () {
         $('#basic-datatables').DataTable();
 
-        // Auto-hide alert + redirect
-        if ($('.alert-success').length) {
+        // 1. Auto-hide alert
+        if ($('.alert').length) {
             setTimeout(function () {
-                $('.alert-success').fadeOut('slow', function () {
-                    window.location.href = 'master_bahan_setengahjadi.php';
+                $('.alert').fadeOut('slow', function () {
+                    window.history.replaceState({}, document.title, "master_bahan_setengahjadi.php");
                 });
             }, 3000);
         }
-    });
 
-    // Tombol Update -> isi modal
-    document.querySelectorAll('.btn-update').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const ds = this.dataset;
-
-            document.getElementById('update_id_bsj').value      = ds.id_bsj || '';
-            document.getElementById('update_nama_bsj').value    = ds.nama_bsj || '';
-            document.getElementById('update_id_satuan').value   = ds.id_satuan || '';
-            document.getElementById('update_id_kategori').value = ds.id_kategori || '';
-            document.getElementById('update_tahap').value       = ds.tahap || 'bsj1';
-
-            const modal = new bootstrap.Modal(document.getElementById('updateBsjModal'));
-            modal.show();
+        // 2. Update Data (Event Delegation)
+        $(document).on('click', '.btn-update', function() {
+            var ds = $(this).data();
+            
+            $('#update_id_bsj').val(ds.id_bsj);
+            $('#update_nama_bsj').val(ds.nama_bsj);
+            $('#update_id_satuan').val(ds.id_satuan);
+            
+            // Mengatur kategori: JS akan mencari value yang sama dengan ID di tabel
+            // Karena PHP di atas sudah kita batasi hanya 'Bumbu', 
+            // maka kategori 'Bahan Baku' tidak akan bisa terpilih di sini.
+            $('#update_id_kategori').val(ds.id_kategori).trigger('change');
+            
+            $('#update_tahap').val(ds.tahap);
+            $('#updateBsjModal').modal('show');
         });
-    });
 
-    // Tombol Delete -> isi link konfirmasi
-    document.querySelectorAll('.btn-delete').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const id = this.dataset.id_bsj;
-            const link = document.getElementById('confirmDeleteLink');
-            link.href = 'delete_bahan_setengahjadi.php?id=' + id;
+        // 3. Delete Data
+        $(document).on('click', '.btn-delete', function() {
+            var id = $(this).data('id_bsj');
+            $('#confirmDeleteLink').attr('href', 'delete_bahan_setengahjadi.php?id=' + id);
+            $('#confirmDeleteModal').modal('show');
+        });
 
-            const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-            modal.show();
+        // 4. Logika Checkbox BOM di Modal Add
+        $(document).on('change', '#langsung_bom', function() {
+            var btn = $('#btnSubmitAdd');
+            if ($(this).is(':checked')) {
+                btn.text('Simpan & Buat BOM').removeClass('btn-primary').addClass('btn-warning');
+            } else {
+                btn.text('Simpan').removeClass('btn-warning').addClass('btn-primary');
+            }
         });
     });
 </script>
