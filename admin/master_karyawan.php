@@ -30,7 +30,12 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
         WebFont.load({
             google: { families: ["Public Sans:300,400,500,600,700"] },
             custom: {
-                families: [ "Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons" ],
+                families: [ 
+                    "Font Awesome 5 Solid", 
+                    "Font Awesome 5 Regular", 
+                    "Font Awesome 5 Brands", 
+                    "simple-line-icons" 
+                ],
                 urls: ["assets/css/fonts.min.css"],
             },
         });
@@ -47,7 +52,13 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
         .text-truncate-2 { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .form-hint { font-size: .8rem; color: #6c757d; }
         .input-icon-right { position: relative; }
-        .input-icon-right .toggle-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; }
+        .input-icon-right .toggle-eye { 
+            position: absolute; 
+            right: 10px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            cursor: pointer; 
+        }
     </style>
 </head>
 <body>
@@ -134,7 +145,7 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                                     <table id="basic-datatables" class="table table-striped table-bordered table-hover align-middle">
                                         <thead>
                                         <tr>
-                                            <th style="width: 6%;" class="text-center">ID</th>
+                                            <th style="width: 6%;" class="text-center">No</th>
                                             <th style="width: 10%;" class="text-center">Foto</th>
                                             <th>Username</th>
                                             <th>Nama</th>
@@ -143,49 +154,55 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                                             <th>Role</th>
                                             <th style="width: 14%;" class="text-center">Action</th>
                                         </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                                            <?php
-                                            $foto = trim((string)($row['foto_profil'] ?? ''));
-                                            if ($foto === '' || $foto === '0') $foto = 'default.png';
-                                            $foto_fs  = __DIR__ . '/assets/img/profil/' . basename($foto);
-                                            $foto_web = 'assets/img/profil/' . basename($foto);
-                                            if (!file_exists($foto_fs)) {
-                                                $foto_web = 'assets/img/profil/default.png';
-                                            }
-                                            ?>
-                                            <tr>
-                                                <td class="text-center"><?= htmlspecialchars($row['id_karyawan']) ?></td>
-                                                <td class="text-center">
-                                                    <img src="<?= htmlspecialchars($foto_web) ?>" alt="foto" class="avatar-list">
-                                                </td>
-                                                <td><?= htmlspecialchars($row['username'] ?? '-') ?></td>
-                                                <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
-                                                <td><?= htmlspecialchars($row['telepon'] ?? '-') ?></td>
-                                                <td><?= htmlspecialchars($row['nama_divisi']) ?></td>
-                                                <td><?= htmlspecialchars($row['nama_role'] ?? '-') ?></td>
-                                                <td class="text-center">
-                                                    <div class="form-button-action">
-                                                        <button type="button" data-bs-toggle="tooltip" title="Edit Data" class="btn btn-primary btn-sm btn-update"
-                                                            data-id_karyawan='<?= htmlspecialchars($row['id_karyawan']) ?>'
-                                                            data-username='<?= htmlspecialchars($row['username']) ?>'
-                                                            data-nama_lengkap='<?= htmlspecialchars($row['nama_lengkap']) ?>'
-                                                            data-telepon='<?= htmlspecialchars($row['telepon']) ?>'
-                                                            data-alamat='<?= htmlspecialchars($row['alamat']) ?>'
-                                                            data-id_divisi='<?= htmlspecialchars($row['id_divisi']) ?>'
-                                                            data-id_role='<?= htmlspecialchars($row['id_role']) ?>'
-                                                            data-foto_profil='<?= htmlspecialchars($row['foto_profil'] ?: 'default.png') ?>'>
-                                                            <i class="fa fa-edit"></i>
-                                                        </button>
-                                                        <button type="button" data-bs-toggle="tooltip" title="Hapus Data" class="btn btn-danger btn-sm btn-delete" data-id_karyawan='<?= htmlspecialchars($row['id_karyawan']) ?>'>
-                                                            <i class="fa fa-times"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                        </tbody>
+                                    </thead>
+                                    <tbody>
+                                    <?php 
+                                    $no = 1;
+                                    while ($row = mysqli_fetch_assoc($result)): 
+                                        $foto = trim((string)($row['foto_profil'] ?? ''));
+                                        if ($foto === '' || $foto === '0') $foto = 'default.png';
+                                        $foto_fs  = __DIR__ . '/assets/img/profil/' . basename($foto);
+                                        $foto_web = 'assets/img/profil/' . basename($foto);
+                                        if (!file_exists($foto_fs)) {
+                                            $foto_web = 'assets/img/profil/default.png';
+                                        }
+                                    ?>
+                                        <tr>
+                                            <!-- No urut, bukan id_karyawan -->
+                                            <td class="text-center"><?= $no++; ?></td>
+
+                                            <td class="text-center">
+                                                <img src="<?= htmlspecialchars($foto_web) ?>" alt="foto" class="avatar-list">
+                                            </td>
+                                            <td><?= htmlspecialchars($row['username'] ?? '-') ?></td>
+                                            <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
+                                            <td><?= htmlspecialchars($row['telepon'] ?? '-') ?></td>
+                                            <td><?= htmlspecialchars($row['nama_divisi']) ?></td>
+                                            <td><?= htmlspecialchars($row['nama_role'] ?? '-') ?></td>
+                                            <td class="text-center">
+                                                <div class="form-button-action">
+                                                    <button type="button" data-bs-toggle="tooltip" title="Edit Data" 
+                                                        class="btn btn-primary btn-sm btn-update"
+                                                        data-id_karyawan='<?= htmlspecialchars($row['id_karyawan']) ?>'
+                                                        data-username='<?= htmlspecialchars($row['username']) ?>'
+                                                        data-nama_lengkap='<?= htmlspecialchars($row['nama_lengkap']) ?>'
+                                                        data-telepon='<?= htmlspecialchars($row['telepon']) ?>'
+                                                        data-alamat='<?= htmlspecialchars($row['alamat']) ?>'
+                                                        data-id_divisi='<?= htmlspecialchars($row['id_divisi']) ?>'
+                                                        data-id_role='<?= htmlspecialchars($row['id_role']) ?>'
+                                                        data-foto_profil='<?= htmlspecialchars($row['foto_profil'] ?: 'default.png') ?>'>
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" data-bs-toggle="tooltip" title="Hapus Data" 
+                                                        class="btn btn-danger btn-sm btn-delete" 
+                                                        data-id_karyawan='<?= htmlspecialchars($row['id_karyawan']) ?>'>
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                    </tbody>
                                     </table>
                                 </div>
                             </div>
@@ -209,10 +226,16 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
+                        <!-- Username sekarang diisi manual -->
                         <div class="col-md-6">
-                            <label class="form-label">Username (otomatis)</label>
-                            <input type="text" class="form-control" value="Username" disabled />
-                            <div class="form-hint">Username dibuat otomatis saat disimpan.</div>
+                            <label class="form-label">Username</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                name="username" 
+                                placeholder="Masukkan username" 
+                                required />
+                            <div class="form-hint">Username digunakan untuk login dan harus unik.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nama Lengkap</label>
@@ -244,7 +267,8 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                         <div class="col-md-6 input-icon-right">
                             <label class="form-label">Password</label>
                             <input type="password" class="form-control" name="password" id="add_password" placeholder="Password" required />
-                            <span class="toggle-eye" data-target="#add_password"><i class="fa fa-eye"></i></span>
+                            <!-- default: password disembunyikan -> icon mata dicoret -->
+                            <span class="toggle-eye" data-target="#add_password"><i class="fa fa-eye-slash"></i></span>
                             <div class="form-hint">Masukkan Password</div>
                         </div>
                         <div class="col-12">
@@ -254,7 +278,10 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                         <div class="col-md-12">
                             <label class="form-label">Foto Profil (opsional)</label>
                             <input type="file" class="form-control" name="foto_profil" accept="image/*" />
-                            <div class="form-hint">File akan disimpan ke <code>admin/assets/img/profil</code>. Jika kosong akan gunakan <code>default.png</code>.</div>
+                            <div class="form-hint">
+                                File akan disimpan ke <code>admin/assets/img/profil</code>. 
+                                Jika kosong akan gunakan <code>default.png</code>.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -283,7 +310,7 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                         <div class="col-md-6">
                             <label class="form-label">Username</label>
                             <input type="text" class="form-control" id="update_username" readonly disabled />
-                            <div class="form-hint">Tidak dapat diubah (dibuat otomatis).</div>
+                            <div class="form-hint">Tidak dapat diubah.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nama Lengkap</label>
@@ -319,7 +346,8 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                         <div class="col-md-6 input-icon-right">
                             <label class="form-label">Password Baru (opsional)</label>
                             <input type="password" class="form-control" name="password" id="update_password" placeholder="Kosongkan jika tidak mengganti" />
-                            <span class="toggle-eye" data-target="#update_password"><i class="fa fa-eye"></i></span>
+                            <!-- default: disembunyikan -->
+                            <span class="toggle-eye" data-target="#update_password"><i class="fa fa-eye-slash"></i></span>
                             <div class="form-hint">Ganti Password</div>
                         </div>
                         <div class="col-12">
@@ -329,7 +357,10 @@ $roles  = mysqli_query($koneksi, "SELECT id_role, nama_role FROM master_role ORD
                         <div class="col-md-12">
                             <label class="form-label">Foto Profil (opsional)</label>
                             <input type="file" class="form-control" name="foto_profil" accept="image/*" />
-                            <div class="form-hint">Kosongkan jika tidak ingin mengganti. File berada di <code>admin/assets/img/profil</code>.</div>
+                            <div class="form-hint">
+                                Kosongkan jika tidak ingin mengganti. File berada di 
+                                <code>admin/assets/img/profil</code>.
+                            </div>
                             <div class="mt-2 d-flex align-items-center gap-2">
                                 <img id="preview_update_foto" src="assets/img/profil/default.png" class="avatar-list" alt="preview" />
                                 <span class="text-muted" id="preview_update_foto_name">default.png</span>
@@ -388,17 +419,20 @@ $(document).ready(function(){
     }
 });
 
-// Toggle eye password
+// Toggle eye password (ikon dibalik)
 function toggleEye(el){
     const targetSel = el.getAttribute('data-target');
     const input = document.querySelector(targetSel);
     if (!input) return;
+
     if (input.type === 'password') {
+        // dari disembunyikan -> tampilkan, ikon jadi mata biasa
         input.type = 'text';
-        el.innerHTML = '<i class="fa fa-eye-slash"></i>';
-    } else {
-        input.type = 'password';
         el.innerHTML = '<i class="fa fa-eye"></i>';
+    } else {
+        // dari terlihat -> sembunyikan, ikon jadi mata dicoret
+        input.type = 'password';
+        el.innerHTML = '<i class="fa fa-eye-slash"></i>';
     }
 }
 

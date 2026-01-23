@@ -16,42 +16,34 @@ $id_kategori   = isset($_POST['id_kategori']) ? trim($_POST['id_kategori']) : ''
 $nama_kategori = isset($_POST['nama_kategori']) ? trim($_POST['nama_kategori']) : '';
 
 // Validasi dasar
-if ($id_kategori === '' || !ctype_digit($id_kategori)) {
-    header("Location: master_kategori.php?msg=" . urlencode("Error: ID tidak valid."));
-    exit();
-}
-if ($nama_kategori === '') {
-    header("Location: master_kategori.php?msg=" . urlencode("Error: Nama kategori tidak boleh kosong."));
+if ($id_kategori === '' || $nama_kategori === '') {
+    header("Location: master_kategori.php?msg=" . urlencode("Error: Data tidak lengkap."));
     exit();
 }
 
-$id = (int)$id_kategori;
+$id = (int) $id_kategori;
 
-// Siapkan query UPDATE (prepared statement)
-$sql = "UPDATE master_kategori SET nama_kategori = ? WHERE id_kategori = ?";
+// Siapkan query UPDATE
+$sql  = "UPDATE master_kategori SET nama_kategori = ? WHERE id_kategori = ?";
 $stmt = mysqli_prepare($koneksi, $sql);
 
-if ($stmt) {
+if (!$stmt) {
+    $msg = "Error: Gagal menyiapkan statement.";
+} else {
     mysqli_stmt_bind_param($stmt, "si", $nama_kategori, $id);
 
     if (mysqli_stmt_execute($stmt)) {
-        if (mysqli_stmt_affected_rows($stmt) > 0) {
-            $msg = "Data kategori berhasil diupdate.";
-        } else {
-            $msg = "Tidak ada perubahan data.";
-        }
+        // PERBAIKAN LOGIKA: 
+        // Kita anggap berhasil selama query tidak error, 
+        // meskipun tidak ada teks yang diubah (affected_rows = 0)
+        $msg = "Data kategori berhasil diupdate.";
     } else {
         $msg = "Error: Gagal mengupdate data. " . mysqli_stmt_error($stmt);
     }
 
     mysqli_stmt_close($stmt);
-} else {
-    $msg = "Error: Gagal menyiapkan statement.";
 }
 
-// Tutup koneksi
-mysqli_close($koneksi);
-
-// Redirect dengan pesan
 header("Location: master_kategori.php?msg=" . urlencode($msg));
 exit();
+?>

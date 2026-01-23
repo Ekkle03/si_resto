@@ -5,24 +5,14 @@ session_start();
 // Hubungkan ke database
 include("../config/koneksi_mysql.php");
 
-// ===== Helper: sanitasi nama depan jadi slug sederhana =====
-function get_firstname_slug($full) {
-    $full = trim($full);
-    if ($full === '') return '';
-    $parts = preg_split('/\s+/', $full);
-    $first = strtolower($parts[0]);
-    // hilangkan non alnum
-    $first = preg_replace('/[^a-z0-9]/', '', $first);
-    return $first ?: 'user';
-}
-
 // Pastikan request POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: master_karyawan.php");
     exit();
 }
 
-// Ambil & bersihkan input (schema baru: password & id_role ada di master_karyawan)
+// Ambil & bersihkan input
+$username      = isset($_POST['username']) ? trim($_POST['username']) : '';
 $nama_lengkap  = isset($_POST['nama_lengkap']) ? trim($_POST['nama_lengkap']) : '';
 $telepon       = isset($_POST['telepon']) ? trim($_POST['telepon']) : null;
 $alamat        = isset($_POST['alamat']) ? trim($_POST['alamat']) : null;
@@ -31,8 +21,32 @@ $id_role       = isset($_POST['id_role']) && $_POST['id_role'] !== '' ? (int)$_P
 $password_raw  = isset($_POST['password']) ? (string)$_POST['password'] : '';
 
 // Validasi minimal
-if ($nama_lengkap === '' || $id_divisi === 0 || $password_raw === '') {
-    header("Location: master_karyawan.php?msg=" . urlencode("Error: Data wajib tidak lengkap (nama, divisi, password)."));
+if ($username === '' || $nama_lengkap === '' || $id_divisi === 0 || $password_raw === '') {
+    header("Location: master_karyawan.php?msg=" . urlencode("Error: Data wajib tidak lengkap (username, nama, divisi, password)."));
+    exit();
+}
+
+// (Opsional) validasi sederhana username (hanya huruf/angka/underscore, misalnya)
+if (!preg_match('/^[A-Za-z0-9_\.]+$/', $username)) {
+    header("Location: master_karyawan.php?msg=" . urlencode("Error: Username hanya boleh berisi huruf, angka, titik, atau underscore."));
+    exit();
+}
+
+// Cek apakah username sudah dipakai
+$sqlCek = "SELECT COUNT(*) AS jml FROM master_karyawan WHERE username = ?";
+$stmtCek = mysqli_prepare($koneksi, $sqlCek);
+if (!$stmtCek) {
+    header("Location: master_karyawan.php?msg=" . urlencode("Error: Gagal menyiapkan pengecekan username."));
+    exit();
+}
+mysqli_stmt_bind_param($stmtCek, "s", $username);
+mysqli_stmt_execute($stmtCek);
+$resultCek = mysqli_stmt_get_result($stmtCek);
+$rowCek = mysqli_fetch_assoc($resultCek);
+mysqli_stmt_close($stmtCek);
+
+if ($rowCek && (int)$rowCek['jml'] > 0) {
+    header("Location: master_karyawan.php?msg=" . urlencode("Error: Username sudah digunakan, silakan pilih username lain."));
     exit();
 }
 
@@ -75,7 +89,7 @@ if (isset($_FILES['foto_profil']) && isset($_FILES['foto_profil']['error']) && $
         }
 
         // Validasi mime type
-        $fi = new finfo(FILEINFO_MIME_TYPE);
+        $fi   = new finfo(FILEINFO_MIME_TYPE);
         $mime = $fi->file($tmp);
         $allowed = [
             'image/jpeg' => '.jpg',
@@ -88,9 +102,9 @@ if (isset($_FILES['foto_profil']) && isset($_FILES['foto_profil']['error']) && $
         }
 
         // Nama file unik
-        $ext = $allowed[$mime];
+        $ext       = $allowed[$mime];
         $nama_file = 'profil_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . $ext;
-        $target = $upload_dir_fs . '/' . $nama_file;
+        $target    = $upload_dir_fs . '/' . $nama_file;
 
         // Pindahkan
         if (!@move_uploaded_file($tmp, $target)) {
@@ -121,66 +135,54 @@ if (isset($_FILES['foto_profil']) && isset($_FILES['foto_profil']['error']) && $
 }
 
 // Fallback ekstra
-if (empty($foto_profil)) { $foto_profil = 'default.png'; }
+if (empty($foto_profil)) { 
+    $foto_profil = 'default.png'; 
+}
 
-// ===== Transaksi agar konsisten =====
-mysqli_begin_transaction($koneksi);
-try {
-    // 1) INSERT awal ke master_karyawan, username NULL (auto di step 2)
-    $sql1 = "INSERT INTO master_karyawan (username, nama_lengkap, telepon, alamat, id_divisi, foto_profil, password, id_role)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt1 = mysqli_prepare($koneksi, $sql1);
-    if (!$stmt1) throw new Exception('Gagal menyiapkan query 1.');
+// ===== Simpan ke database =====
+$sql = "INSERT INTO master_karyawan (username, nama_lengkap, telepon, alamat, id_divisi, foto_profil, password, id_role)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+$stmt = mysqli_prepare($koneksi, $sql);
 
-    $username_null = null; // akan diisi nanti
-
-    mysqli_stmt_bind_param(
-        $stmt1,
-        "ssssissi",
-        $username_null,   // username -> NULL dulu
-        $nama_lengkap,
-        $telepon,
-        $alamat,
-        $id_divisi,
-        $foto_profil,
-        $password_hashed,
-        $id_role
-    );
-
-    if (!mysqli_stmt_execute($stmt1)) throw new Exception('Gagal menyimpan data karyawan.');
-    mysqli_stmt_close($stmt1);
-
-    // 2) Ambil ID baru & generate username
-    $new_id = (int)mysqli_insert_id($koneksi);
-    $first  = get_firstname_slug($nama_lengkap);
-    $username_auto = $first . $new_id; // unik karena ada ID
-
-    $sql2 = "UPDATE master_karyawan SET username = ? WHERE id_karyawan = ?";
-    $stmt2 = mysqli_prepare($koneksi, $sql2);
-    if (!$stmt2) throw new Exception('Gagal menyiapkan query 2.');
-    mysqli_stmt_bind_param($stmt2, "si", $username_auto, $new_id);
-    if (!mysqli_stmt_execute($stmt2)) throw new Exception('Gagal mengisi username otomatis.');
-    mysqli_stmt_close($stmt2);
-
-    // 3) Commit
-    mysqli_commit($koneksi);
-
-    header("Location: master_karyawan.php?msg=" . urlencode("Data karyawan berhasil ditambahkan. Username: $username_auto"));
-    exit();
-
-} catch (Throwable $e) {
-    // Rollback DB
-    mysqli_rollback($koneksi);
-    // Hapus file upload jika ada
+if (!$stmt) {
+    // kalau gagal prepare dan ada foto upload bukan default, hapus
     if ($foto_profil !== 'default.png') {
         $uploaded = $upload_dir_fs . '/' . basename($foto_profil);
         if (is_file($uploaded)) { @unlink($uploaded); }
     }
+    header("Location: master_karyawan.php?msg=" . urlencode("Error: Gagal menyiapkan query simpan karyawan."));
+    exit();
+}
 
-    $msg = 'Error: ' . $e->getMessage();
+mysqli_stmt_bind_param(
+    $stmt,
+    "ssssissi",
+    $username,
+    $nama_lengkap,
+    $telepon,
+    $alamat,
+    $id_divisi,
+    $foto_profil,
+    $password_hashed,
+    $id_role
+);
+
+if (!mysqli_stmt_execute($stmt)) {
+    if ($foto_profil !== 'default.png') {
+        $uploaded = $upload_dir_fs . '/' . basename($foto_profil);
+        if (is_file($uploaded)) { @unlink($uploaded); }
+    }
+    $msg = "Error: Gagal menyimpan data karyawan. " . mysqli_stmt_error($stmt);
+    mysqli_stmt_close($stmt);
     header("Location: master_karyawan.php?msg=" . urlencode($msg));
     exit();
 }
+
+mysqli_stmt_close($stmt);
+
+// Sukses
+header("Location: master_karyawan.php?msg=" . urlencode("Data karyawan berhasil ditambahkan dengan username: $username"));
+exit();
 
 // Tutup koneksi
 mysqli_close($koneksi);

@@ -64,7 +64,7 @@ function is_active($pages, $current_page) {
                 <li class="nav-item <?= is_active(['produksi.php'], $current_page) ?>">
                     <a href="produksi.php">
                         <i class="fas fa-blender"></i>
-                        <p>Produksi Bumbu</p>
+                        <p>Produksi</p>
                     </a>
                 </li>
                 <li class="nav-item <?= is_active(['permintaan.php'], $current_page) ?>">
@@ -73,16 +73,16 @@ function is_active($pages, $current_page) {
                         <p>Permintaan Barang</p>
                     </a>
                 </li>
-                <li class="nav-item <?= is_active(['pengeluaran.php'], $current_page) ?>">
-                    <a href="pengeluaran.php">
+                <li class="nav-item <?= is_active(['menu_keluar.php'], $current_page) ?>">
+                    <a href="menu_keluar.php">
                         <i class="fas fa-dolly-flatbed"></i>
-                        <p>Pengeluaran Barang</p>
+                        <p>Menu Keluar</p>
                     </a>
                 </li>
                  <li class="nav-item <?= is_active(['stok_opname.php'], $current_page) ?>">
                     <a href="stok_opname.php">
                         <i class="fas fa-tasks"></i>
-                        <p>Penyesuaian Stok</p>
+                        <p>Stok Opname</p>
                     </a>
                 </li>
 
@@ -93,10 +93,10 @@ function is_active($pages, $current_page) {
                     <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
                     <h4 class="text-section">Laporan</h4>
                 </li>
-                <li class="nav-item <?= is_active(['laporan_stok.php'], $current_page) ?>">
-                    <a href="laporan_stok.php">
-                        <i class="fas fa-chart-bar"></i>
-                        <p>Laporan Stok</p>
+                <li class="nav-item <?= is_active(['kartu_stok.php'], $current_page) ?>">
+                    <a href="kartu_stok.php">
+                        <i class="fas fa-book"></i>
+                        <p>Kartu Stok</p>
                     </a>
                 </li>
                 <li class="nav-item <?= is_active(['laporan_pemakaian.php'], $current_page) ?>">
@@ -137,8 +137,17 @@ function is_active($pages, $current_page) {
                 <li class="nav-item <?= is_active(['master_kategori.php'], $current_page) ?>">
                     <a href="master_kategori.php"><i class="fas fa-tags"></i><p>Master Kategori</p></a>
                 </li>
-                <li class="nav-item <?= is_active(['master_item.php'], $current_page) ?>">
-                    <a href="master_item.php"><i class="fas fa-boxes"></i><p>Master Item</p></a>
+                <li class="nav-item <?= is_active(['master_bahanbaku.php'], $current_page) ?>">
+                    <a href="master_bahanbaku.php"> <i class="fas fa-leaf"></i><p>Master Bahan Baku</p></a>
+                </li>
+                <li class="nav-item <?= is_active(['master_bahan_setengahjadi.php'], $current_page) ?>">
+                    <a href="master_bahan_setengahjadi.php"><i class="fas fa-seedling"></i><p>Master Bahan Setengah Jadi</p></a>
+                </li>
+                <li class="nav-item <?= is_active(['master_menu.php'], $current_page) ?>">
+                    <a href="master_menu.php"><i class="fas fa-utensils"></i><p>Master Menu</p></a>
+                </li>
+                <li class="nav-item <?= is_active(['master_gudang.php'], $current_page) ?>">
+                    <a href="master_gudang.php"><i class="fas fa-boxes"></i><p>Master Gudang</p></a>
                 </li>
                 </ul>
         </div>

@@ -5,7 +5,7 @@ session_start();
 // Hubungkan ke database
 include("../config/koneksi_mysql.php");
 
-// Ambil data satuan
+// Ambil data satuan (kode_satuan ikut di-select)
 $result = mysqli_query($koneksi, "SELECT * FROM master_satuan ORDER BY id_satuan ASC");
 ?>
 <!DOCTYPE html>
@@ -121,15 +121,21 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_satuan ORDER BY id_satuan
                                     <table id="basic-datatables" class="table table-striped table-bordered table-hover">
                                         <thead>
                                         <tr>
-                                            <th style="width: 15%;" class="text-center">ID Satuan</th>
+                                            <th style="width: 8%;" class="text-center">No</th>
+                                            <th style="width: 18%;" class="text-center">Kode Satuan</th>
                                             <th class="text-center">Nama Satuan</th>
                                             <th style="width: 20%;" class="text-center">Action</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                                        <?php 
+                                        $no = 1;
+                                        while ($row = mysqli_fetch_assoc($result)): ?>
                                             <tr>
-                                                <td class="text-center"><?= htmlspecialchars($row['id_satuan']) ?></td>
+                                                <!-- No urut, bukan id_satuan -->
+                                                <td class="text-center"><?= $no++; ?></td>
+                                                <!-- Kode satuan dari database (misal: SAT-001) -->
+                                                <td class="text-center"><?= htmlspecialchars($row['kode_satuan'] ?? '-') ?></td>
                                                 <td><?= htmlspecialchars($row['nama_satuan']) ?></td>
                                                 <td class="text-center">
                                                     <div class="form-button-action">
@@ -172,6 +178,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_satuan ORDER BY id_satuan
                     <div class="mb-3">
                         <label for="nama_satuan" class="form-label">Nama Satuan</label>
                         <input type="text" class="form-control" id="nama_satuan" name="nama_satuan" placeholder="Masukkan nama satuan" required />
+                        <div class="form-text">Kode satuan akan dibuat otomatis oleh sistem.</div>
                     </div>
                 </div>
                 <div class="modal-footer">

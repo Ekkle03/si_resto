@@ -1,12 +1,18 @@
 <?php
-// Mulai session di awal
 session_start();
-
-// Hubungkan ke database
 include("../config/koneksi_mysql.php");
 
-// Mengambil data divisi dari database
-$result = mysqli_query($koneksi, "SELECT * FROM master_divisi ORDER BY id_divisi ASC");
+// Query JOIN untuk mengambil nama satuan dan nama kategori
+$sql = "SELECT m.*, s.nama_satuan, k.nama_kategori 
+        FROM master_menu m
+        LEFT JOIN master_satuan s ON m.id_satuan = s.id_satuan
+        LEFT JOIN master_kategori k ON m.id_kategori = k.id_kategori
+        ORDER BY m.id_menu ASC";
+$result = mysqli_query($koneksi, $sql);
+
+// Ambil data untuk dropdown di modal
+$satuan_list = mysqli_query($koneksi, "SELECT * FROM master_satuan");
+$kategori_list = mysqli_query($koneksi, "SELECT * FROM master_kategori");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -104,8 +110,9 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_divisi ORDER BY id_divisi
                     </div>
                 </nav>
             </div>
-
-            <div class="container">
+           
+        
+        <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
                         <h3 class="fw-bold mb-3">Master Data</h3>
@@ -114,14 +121,14 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_divisi ORDER BY id_divisi
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header d-flex align-items-center">
-                                    <h4 class="card-title">Data Master Divisi</h4>
-                                    <button class="btn btn-outline-primary btn-outline-primary-thicker btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#addDivisiModal">
-                                        <i class="fa fa-plus"></i> Tambah Data
+                                    <h4 class="card-title">Data Master Menu</h4>
+                                    <button class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#addMenuModal">
+                                        <i class="fa fa-plus"></i> Tambah Menu
                                     </button>
                                 </div>
                                 <div class="card-body">
                                     <?php if (isset($_GET['msg'])): ?>
-                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <div id="alert-notif" class="alert alert-success alert-dismissible fade show" role="alert">
                                             <?= htmlspecialchars($_GET['msg']) ?>
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                         </div>
@@ -131,39 +138,37 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_divisi ORDER BY id_divisi
                                         <table id="basic-datatables" class="table table-striped table-bordered table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th style="width: 8%;" class="text-center">No</th>
-                                                    <th style="width: 20%;" class="text-center">Kode Divisi</th>
-                                                    <th class="text-center">Nama Divisi</th>
-                                                    <th style="width: 20%;" class="text-center">Action</th>
+                                                    <th style="width: 5%;">No</th>
+                                                    <th>Kode</th>
+                                                    <th>Nama Menu</th>
+                                                    <th>Kategori</th>
+                                                    <th>Satuan</th>
+                                                    <th style="width: 15%;">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php 
                                                 $no = 1;
                                                 while ($row = mysqli_fetch_assoc($result)): 
+                                                    $kode_otomatis = "MNU-" . str_pad($row['id_menu'], 3, '0', STR_PAD_LEFT);
                                                 ?>
                                                 <tr>
                                                     <td class="text-center"><?= $no++; ?></td>
-                                                    <td class="text-center"><?= htmlspecialchars($row['kode_divisi']) ?></td>
-                                                    <td><?= htmlspecialchars($row['nama_divisi']) ?></td>
+                                                    <td><?= $kode_otomatis ?></td>
+                                                    <td><?= htmlspecialchars($row['nama_menu']) ?></td>
+                                                    <td><?= htmlspecialchars($row['nama_kategori']) ?></td>
+                                                    <td><?= htmlspecialchars($row['nama_satuan']) ?></td>
                                                     <td class="text-center">
                                                         <div class="form-button-action">
-                                                            <button 
-                                                                type="button" 
-                                                                data-bs-toggle="tooltip" 
-                                                                title="Edit Data" 
-                                                                class="btn btn-primary btn-sm btn-update"
-                                                                data-id_divisi='<?= htmlspecialchars($row['id_divisi']) ?>'
-                                                                data-kode_divisi='<?= htmlspecialchars($row['kode_divisi']) ?>'
-                                                                data-nama_divisi='<?= htmlspecialchars($row['nama_divisi']) ?>'>
+                                                            <button type="button" class="btn btn-primary btn-sm btn-update"
+                                                                data-id_menu="<?= $row['id_menu'] ?>"
+                                                                data-id_satuan="<?= $row['id_satuan'] ?>"
+                                                                data-id_kategori="<?= $row['id_kategori'] ?>"
+                                                                data-nama_menu="<?= htmlspecialchars($row['nama_menu']) ?>">
                                                                 <i class="fa fa-edit"></i>
                                                             </button>
-                                                            <button 
-                                                                type="button" 
-                                                                data-bs-toggle="tooltip" 
-                                                                title="Hapus Data" 
-                                                                class="btn btn-danger btn-sm btn-delete"
-                                                                data-id_divisi='<?= htmlspecialchars($row['id_divisi']) ?>'>
+                                                            <button type="button" class="btn btn-danger btn-sm btn-delete"
+                                                                data-id_menu="<?= $row['id_menu'] ?>">
                                                                 <i class="fa fa-times"></i>
                                                             </button>
                                                         </div>
@@ -182,25 +187,36 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_divisi ORDER BY id_divisi
         </div>
     </div>
 
-    <!-- Modal Tambah Divisi -->
-    <div class="modal fade" id="addDivisiModal" tabindex="-1" aria-labelledby="addDivisiModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addMenuModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="add_divisi.php">
+                <form method="POST" action="add_menu.php">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addDivisiModalLabel">Tambah Data Divisi</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title">Tambah Data Menu</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="nama_divisi" class="form-label">Nama Divisi</label>
-                            <input 
-                                type="text" 
-                                class="form-control" 
-                                id="nama_divisi" 
-                                name="nama_divisi" 
-                                placeholder="Masukkan nama divisi" 
-                                required />
+                            <label>Nama Menu</label>
+                            <input type="text" class="form-control" name="nama_menu" required />
+                        </div>
+                        <div class="mb-3">
+                            <label>Kategori</label>
+                            <select class="form-control" name="id_kategori" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                <?php mysqli_data_seek($kategori_list, 0); while($k = mysqli_fetch_assoc($kategori_list)): ?>
+                                    <option value="<?= $k['id_kategori'] ?>"><?= $k['nama_kategori'] ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Satuan</label>
+                            <select class="form-control" name="id_satuan" required>
+                                <option value="">-- Pilih Satuan --</option>
+                                <?php mysqli_data_seek($satuan_list, 0); while($s = mysqli_fetch_assoc($satuan_list)): ?>
+                                    <option value="<?= $s['id_satuan'] ?>"><?= $s['nama_satuan'] ?></option>
+                                <?php endwhile; ?>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -212,26 +228,35 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_divisi ORDER BY id_divisi
         </div>
     </div>
 
-    <!-- Modal Update Divisi -->
-    <div class="modal fade" id="updateDivisiModal" tabindex="-1" aria-labelledby="updateDivisiModalLabel" aria-hidden="true">
+    <div class="modal fade" id="updateMenuModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="update_divisi.php">
-                    <input type="hidden" name="id_divisi" id="update_id_divisi" />
+                <form method="POST" action="update_menu.php">
+                    <input type="hidden" name="id_menu" id="update_id_menu" />
                     <div class="modal-header">
-                        <h5 class="modal-title" id="updateDivisiModalLabel">Update Data Divisi</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title">Update Data Menu</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="update_nama_divisi" class="form-label">Nama Divisi</label>
-                            <input 
-                                type="text" 
-                                class="form-control" 
-                                id="update_nama_divisi" 
-                                name="nama_divisi" 
-                                placeholder="Ubah nama divisi" 
-                                required />
+                            <label>Nama Menu</label>
+                            <input type="text" class="form-control" name="nama_menu" id="update_nama_menu" required />
+                        </div>
+                        <div class="mb-3">
+                            <label>Kategori</label>
+                            <select class="form-control" name="id_kategori" id="update_id_kategori" required>
+                                <?php mysqli_data_seek($kategori_list, 0); while($k = mysqli_fetch_assoc($kategori_list)): ?>
+                                    <option value="<?= $k['id_kategori'] ?>"><?= $k['nama_kategori'] ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Satuan</label>
+                            <select class="form-control" name="id_satuan" id="update_id_satuan" required>
+                                <?php mysqli_data_seek($satuan_list, 0); while($s = mysqli_fetch_assoc($satuan_list)): ?>
+                                    <option value="<?= $s['id_satuan'] ?>"><?= $s['nama_satuan'] ?></option>
+                                <?php endwhile; ?>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -243,72 +268,29 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_divisi ORDER BY id_divisi
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Hapus -->
-    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Hapus</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Apakah Anda yakin ingin menghapus divisi ini?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <a href="#" id="confirmDeleteLink" class="btn btn-danger">Hapus</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Core JS Files -->
     <script src="assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="assets/js/core/popper.min.js"></script>
     <script src="assets/js/core/bootstrap.min.js"></script>
-    <script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="assets/js/plugin/datatables/datatables.min.js"></script>
-    <script src="assets/js/plugin/sweetalert/sweetalert.min.js"></script>
-    <script src="assets/js/kaiadmin.min.js"></script>
-
     <script>
         $(document).ready(function() {
             $('#basic-datatables').DataTable();
-
-            // Auto hide alert & redirect
-            if ($('.alert-success').length) {
+            if ($('#alert-notif').length > 0) {
                 setTimeout(function() {
-                    $('.alert-success').fadeOut('slow', function() {
-                        window.location.href = 'master_divisi.php';
+                    $('#alert-notif').fadeOut('slow', function() {
+                        $(this).remove();
+                        window.history.replaceState({}, document.title, "master_menu.php");
                     });
                 }, 3000);
             }
         });
 
-        // Event listener untuk tombol Update
-        document.querySelectorAll('.btn-update').forEach(button => {
-            button.addEventListener('click', function() {
-                const idDivisi   = this.dataset.id_divisi;
-                const namaDivisi = this.dataset.nama_divisi;
-
-                document.getElementById('update_id_divisi').value   = idDivisi;
-                document.getElementById('update_nama_divisi').value = namaDivisi;
-
-                const updateModal = new bootstrap.Modal(document.getElementById('updateDivisiModal'));
-                updateModal.show();
-            });
-        });
-
-        // Event listener untuk tombol Delete
-        document.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', function() {
-                const divisiId   = this.dataset.id_divisi;
-                const deleteLink = document.getElementById('confirmDeleteLink');
-                deleteLink.href  = 'delete_divisi.php?id=' + divisiId;
-
-                const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-                deleteModal.show();
-            });
+        $(document).on('click', '.btn-update', function() {
+            $('#update_id_menu').val($(this).data('id_menu'));
+            $('#update_nama_menu').val($(this).data('nama_menu'));
+            $('#update_id_kategori').val($(this).data('id_kategori'));
+            $('#update_id_satuan').val($(this).data('id_satuan'));
+            $('#updateMenuModal').modal('show');
         });
     </script>
 </body>

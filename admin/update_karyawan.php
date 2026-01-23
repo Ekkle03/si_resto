@@ -5,16 +5,6 @@ session_start();
 // Koneksi DB
 include("../config/koneksi_mysql.php");
 
-// ===== Helper: ambil slug nama depan (lowercase alnum) =====
-function get_firstname_slug($full) {
-    $full = trim($full);
-    if ($full === '') return 'user';
-    $parts = preg_split('/\s+/', $full);
-    $first = strtolower($parts[0]);
-    $first = preg_replace('/[^a-z0-9]/', '', $first);
-    return $first ?: 'user';
-}
-
 // ===== Guard: hanya POST =====
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: master_karyawan.php");
@@ -66,7 +56,7 @@ if (isset($_FILES['foto_profil']) && isset($_FILES['foto_profil']['error']) && $
         }
 
         // Validasi mime
-        $fi = new finfo(FILEINFO_MIME_TYPE);
+        $fi   = new finfo(FILEINFO_MIME_TYPE);
         $mime = $fi->file($tmp);
         $allowed = [
             'image/jpeg' => '.jpg',
@@ -79,9 +69,9 @@ if (isset($_FILES['foto_profil']) && isset($_FILES['foto_profil']['error']) && $
         }
 
         // Nama file unik & pindahkan
-        $ext = $allowed[$mime];
+        $ext          = $allowed[$mime];
         $new_foto_name = 'profil_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . $ext;
-        $target = $upload_dir_fs . '/' . $new_foto_name;
+        $target        = $upload_dir_fs . '/' . $new_foto_name;
 
         if (!@move_uploaded_file($tmp, $target)) {
             header("Location: master_karyawan.php?msg=" . urlencode("Error: Gagal menyimpan file upload."));
@@ -106,9 +96,6 @@ if (isset($_FILES['foto_profil']) && isset($_FILES['foto_profil']['error']) && $
     }
 }
 
-// ===== Generate username baru dari nama_lengkap + id_karyawan (ikut update) =====
-$new_username = get_firstname_slug($nama_lengkap) . $id_karyawan;
-
 // ===== Hash password jika diisi =====
 $password_hashed = null;
 if ($password_raw !== '') {
@@ -123,23 +110,23 @@ if ($password_raw !== '') {
 mysqli_begin_transaction($koneksi);
 
 try {
-    // 4 CABANG supaya binding rapi (tanpa variadic)
+    // 4 CABANG agar binding rapi
+
     if ($new_foto_name && $password_hashed !== null) {
         // Foto + Password
         $sql = "UPDATE master_karyawan
-                SET username = ?, nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?, foto_profil = ?, password = ?
+                SET nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?, foto_profil = ?, password = ?
                 WHERE id_karyawan = ?";
         $stmt = mysqli_prepare($koneksi, $sql);
         if (!$stmt) throw new Exception('Gagal menyiapkan query (foto+pass).');
         mysqli_stmt_bind_param(
             $stmt,
-            "ssssisssi",
-            $new_username,
+            "sssii ssi",
             $nama_lengkap,
             $telepon,
             $alamat,
             $id_divisi,
-            $id_role,       // boleh NULL
+            $id_role,
             $new_foto_name,
             $password_hashed,
             $id_karyawan
@@ -148,19 +135,18 @@ try {
     } elseif ($new_foto_name && $password_hashed === null) {
         // Hanya Foto
         $sql = "UPDATE master_karyawan
-                SET username = ?, nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?, foto_profil = ?
+                SET nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?, foto_profil = ?
                 WHERE id_karyawan = ?";
         $stmt = mysqli_prepare($koneksi, $sql);
         if (!$stmt) throw new Exception('Gagal menyiapkan query (foto).');
         mysqli_stmt_bind_param(
             $stmt,
-            "ssssissi",
-            $new_username,
+            "sssiisi",
             $nama_lengkap,
             $telepon,
             $alamat,
             $id_divisi,
-            $id_role,       // boleh NULL
+            $id_role,
             $new_foto_name,
             $id_karyawan
         );
@@ -168,19 +154,18 @@ try {
     } elseif (!$new_foto_name && $password_hashed !== null) {
         // Hanya Password
         $sql = "UPDATE master_karyawan
-                SET username = ?, nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?, password = ?
+                SET nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?, password = ?
                 WHERE id_karyawan = ?";
         $stmt = mysqli_prepare($koneksi, $sql);
         if (!$stmt) throw new Exception('Gagal menyiapkan query (pass).');
         mysqli_stmt_bind_param(
             $stmt,
-            "ssssissi",
-            $new_username,
+            "sssiisi",
             $nama_lengkap,
             $telepon,
             $alamat,
             $id_divisi,
-            $id_role,       // boleh NULL
+            $id_role,
             $password_hashed,
             $id_karyawan
         );
@@ -188,25 +173,24 @@ try {
     } else {
         // Tanpa Foto & Tanpa Password
         $sql = "UPDATE master_karyawan
-                SET username = ?, nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?
+                SET nama_lengkap = ?, telepon = ?, alamat = ?, id_divisi = ?, id_role = ?
                 WHERE id_karyawan = ?";
         $stmt = mysqli_prepare($koneksi, $sql);
         if (!$stmt) throw new Exception('Gagal menyiapkan query (basic).');
         mysqli_stmt_bind_param(
             $stmt,
-            "sssisii",
-            $new_username,
+            "sssiii",
             $nama_lengkap,
             $telepon,
             $alamat,
             $id_divisi,
-            $id_role,       // boleh NULL
+            $id_role,
             $id_karyawan
         );
     }
 
     if (!mysqli_stmt_execute($stmt)) {
-        throw new Exception('Gagal mengupdate data karyawan.');
+        throw new Exception('Gagal mengupdate data karyawan: ' . mysqli_stmt_error($stmt));
     }
     mysqli_stmt_close($stmt);
 
@@ -222,7 +206,7 @@ try {
     }
 
     mysqli_commit($koneksi);
-    header("Location: master_karyawan.php?msg=" . urlencode("Data karyawan & username berhasil diupdate."));
+    header("Location: master_karyawan.php?msg=" . urlencode("Data karyawan berhasil diupdate."));
     exit();
 
 } catch (Throwable $e) {

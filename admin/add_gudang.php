@@ -7,27 +7,27 @@ include("../config/koneksi_mysql.php");
 
 // Pastikan request via POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("Location: master_satuan.php");
+    header("Location: master_gudang.php");
     exit();
 }
 
 // Ambil & bersihkan input
-$nama_satuan = isset($_POST['nama_satuan']) ? trim($_POST['nama_satuan']) : '';
+$nama_gudang = isset($_POST['nama_gudang']) ? trim($_POST['nama_gudang']) : '';
 
 // Validasi
-if ($nama_satuan === '') {
-    header("Location: master_satuan.php?msg=" . urlencode("Error: Nama satuan tidak boleh kosong."));
+if ($nama_gudang === '') {
+    header("Location: master_gudang.php?msg=" . urlencode("Error: Nama gudang tidak boleh kosong."));
     exit();
 }
 
-// ===== Generate kode_satuan otomatis (SAT-001, SAT-002, dst) =====
-$prefix = 'SAT-';
+// ===== Generate kode_gudang otomatis (GDN-001, GDN-002, dst) =====
+$prefix = 'GDN-';
 $nextNumber = 1;
 
 // Ambil kode terbesar yang sudah ada
-$sqlMax  = "SELECT kode_satuan FROM master_satuan 
-            WHERE kode_satuan LIKE ? 
-            ORDER BY kode_satuan DESC 
+$sqlMax  = "SELECT kode_gudang FROM master_gudang 
+            WHERE kode_gudang LIKE ? 
+            ORDER BY kode_gudang DESC 
             LIMIT 1";
 $stmtMax = mysqli_prepare($koneksi, $sqlMax);
 
@@ -38,7 +38,7 @@ if ($stmtMax) {
     mysqli_stmt_bind_result($stmtMax, $lastKode);
 
     if (mysqli_stmt_fetch($stmtMax) && $lastKode) {
-        // Ambil angka di belakang prefix, contoh SAT-015 → 15
+        // Ambil angka di belakang prefix, contoh GDN-015 → 15
         $numPart = preg_replace('/[^0-9]/', '', $lastKode);
         if ($numPart !== '') {
             $nextNumber = (int)$numPart + 1;
@@ -48,17 +48,17 @@ if ($stmtMax) {
 }
 
 // Format ke 3 digit: 1 → 001, 12 → 012, dst
-$kode_satuan = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+$kode_gudang = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
 
 // ===== Insert data =====
-$sql  = "INSERT INTO master_satuan (kode_satuan, nama_satuan) VALUES (?, ?)";
+$sql  = "INSERT INTO master_gudang (kode_gudang, nama_gudang) VALUES (?, ?)";
 $stmt = mysqli_prepare($koneksi, $sql);
 
 if ($stmt) {
-    mysqli_stmt_bind_param($stmt, "ss", $kode_satuan, $nama_satuan);
+    mysqli_stmt_bind_param($stmt, "ss", $kode_gudang, $nama_gudang);
 
     if (mysqli_stmt_execute($stmt)) {
-        $msg = "Data satuan berhasil ditambahkan dengan kode: $kode_satuan";
+        $msg = "Data gudang berhasil ditambahkan ";
     } else {
         $msg = "Error: Gagal menambahkan data. " . mysqli_stmt_error($stmt);
     }
@@ -72,5 +72,5 @@ if ($stmt) {
 mysqli_close($koneksi);
 
 // Redirect dengan pesan
-header("Location: master_satuan.php?msg=" . urlencode($msg));
+header("Location: master_gudang.php?msg=" . urlencode($msg));
 exit();
