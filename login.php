@@ -21,12 +21,13 @@ if (empty($_POST['username']) || empty($_POST['password'])) {
 $username = trim($_POST['username']);
 $password = (string)$_POST['password'];
 
-// 4) Ambil user dari master_karyawan (+ role)
+// 4) Ambil user dari master_karyawan (+ role + foto_profil)
 $sql = "SELECT
             k.id_karyawan,
             k.username,
             k.password,
             k.nama_lengkap,
+            k.foto_profil,
             k.id_role,
             r.nama_role
         FROM master_karyawan k
@@ -58,23 +59,24 @@ if ($res && $res->num_rows === 1) {
         $_SESSION['id_karyawan']  = (int)$data['id_karyawan'];
         $_SESSION['username']     = $data['username'];
         $_SESSION['nama_lengkap'] = $data['nama_lengkap'];
-        $_SESSION['id_role']      = $data['id_role'];             // bisa null
-        $_SESSION['nama_role']    = $data['nama_role'] ?? null;   // bisa null
+        $_SESSION['foto_profil']  = $data['foto_profil'];         // ← DITAMBAHKAN
+        $_SESSION['id_role']      = $data['id_role'];
+        $_SESSION['nama_role']    = $data['nama_role'] ?? null;
         $_SESSION['login_status'] = true;
 
-        // 7) Redirect sesuai role (fallback ke dashboard umum)
+        // 7) Redirect sesuai role (sesuai data di master_role)
         $role = strtolower(trim((string)($data['nama_role'] ?? '')));
         switch ($role) {
             case 'owner':
                 header("Location: admin/dashboard_owner.php"); break;
             case 'admin':
                 header("Location: admin/dashboard_admin.php"); break;
-            case 'kasir':
-                header("Location: admin/dashboard_kasir.php"); break;
-            case 'staf gudang':
-                header("Location: admin/dashboard_gudang.php"); break;
+            case 'purchasing':
+                header("Location: admin/dashboard_purchasing.php"); break;
+            case 'staf':
+                header("Location: admin/dashboard_staf.php"); break;
             default:
-                header("Location: admin/dashboard.php"); // fallback
+                header("Location: admin/dashboard.php"); // fallback role tidak dikenal
         }
         exit;
 

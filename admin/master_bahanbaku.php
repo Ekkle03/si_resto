@@ -3,12 +3,11 @@ session_start();
 include("../config/koneksi_mysql.php");
 
 // 1. QUERY FILTER KATEGORI (Hanya ambil sub-kategori dari induk 'BAHAN BAKU')
-// Kita cari dulu ID Induk 'BAHAN BAKU'
 $cek_induk = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'BAHAN BAKU' LIMIT 1");
 $data_induk = mysqli_fetch_assoc($cek_induk);
 $id_induk_bb = $data_induk['id_kategori'] ?? 0;
 
-// 2. AMBIL DATA LIST BAHAN BAKU
+// 2. AMBIL DATA LIST BAHAN BAKU (Termasuk stok_minimal)
 $sql_list = "SELECT b.*, s.nama_satuan, k.nama_kategori
              FROM master_bahan_baku b
              INNER JOIN master_satuan s ON b.id_satuan = s.id_satuan
@@ -131,15 +130,16 @@ $result = mysqli_query($koneksi, $sql_list);
                                 <div class="table-responsive">
                                     <table id="basic-datatables" class="table table-striped table-bordered table-hover align-middle">
                                         <thead>
-                                        <tr>
-                                            <th style="width: 5%;" class="text-center">No</th>
-                                            <th style="width: 15%;" class="text-center">Kode</th>
-                                            <th>Nama Bahan</th>
-                                            <th style="width: 10%;" class="text-center">Satuan</th>
-                                            <th style="width: 15%;" class="text-center">Kategori</th>
-                                            <th style="width: 10%;" class="text-center">Tipe</th>
-                                            <th style="width: 12%;" class="text-center">Action</th>
-                                        </tr>
+                                            <tr>
+                                                <th class="text-center">No</th>
+                                                <th class="text-center">Kode</th>
+                                                <th>Nama Bahan</th>
+                                                <th class="text-center">Satuan</th>
+                                                <th class="text-center">Kategori</th>
+                                                <th class="text-center">Min. Stok</th>
+                                                <th class="text-center">Tipe</th>
+                                                <th class="text-center">Action</th>
+                                            </tr>
                                         </thead>
                                         <tbody>
                                         <?php $no = 1; while ($row = mysqli_fetch_assoc($result)): ?>
@@ -149,12 +149,11 @@ $result = mysqli_query($koneksi, $sql_list);
                                                 <td class="fw-bold"><?= htmlspecialchars($row['nama_bb']) ?></td>
                                                 <td class="text-center"><?= htmlspecialchars($row['nama_satuan']) ?></td>
                                                 <td class="text-center"><?= htmlspecialchars($row['nama_kategori']) ?></td>
+                                                <td class="text-center fw-bold text-primary"><?= $row['stok_minimal'] ?></td>
                                                 <td class="text-center">
-                                                    <?php if($row['tipe_bahan'] === 'basah'): ?>
-                                                        <span class="badge badge-info">Basah</span>
-                                                    <?php else: ?>
-                                                        <span class="badge badge-warning">Kering</span>
-                                                    <?php endif; ?>
+                                                    <span class="badge <?= $row['tipe_bahan'] == 'basah' ? 'badge-info' : 'badge-warning' ?>">
+                                                        <?= ucfirst($row['tipe_bahan']) ?>
+                                                    </span>
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="form-button-action">
@@ -163,6 +162,7 @@ $result = mysqli_query($koneksi, $sql_list);
                                                                 data-nama_bb="<?= htmlspecialchars($row['nama_bb']) ?>"
                                                                 data-id_satuan="<?= $row['id_satuan'] ?>"
                                                                 data-id_kategori="<?= $row['id_kategori'] ?>"
+                                                                data-stok_minimal="<?= $row['stok_minimal'] ?>"
                                                                 data-tipe_bahan="<?= $row['tipe_bahan'] ?>">
                                                             <i class="fa fa-edit"></i>
                                                         </button>
@@ -214,11 +214,14 @@ $result = mysqli_query($koneksi, $sql_list);
                         <select class="form-select" name="id_kategori" required>
                             <option value="" disabled selected>-- Pilih Kategori --</option>
                             <?php 
-                            // FILTER: Hanya ambil kategori yang anak dari 'BAHAN BAKU'
                             $kategori = mysqli_query($koneksi, "SELECT id_kategori, nama_kategori FROM master_kategori WHERE parent_id = '$id_induk_bb' ORDER BY nama_kategori ASC");
                             while ($k = mysqli_fetch_assoc($kategori)) echo "<option value='".$k['id_kategori']."'>".$k['nama_kategori']."</option>";
                             ?>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stok Minimal (Batas Reorder)</label>
+                        <input type="number" step="0.01" class="form-control" name="stok_minimal" value="0" required />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tipe Bahan</label>
@@ -270,6 +273,10 @@ $result = mysqli_query($koneksi, $sql_list);
                         </select>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Stok Minimal (Batas Reorder)</label>
+                        <input type="number" step="0.01" class="form-control" name="stok_minimal" id="update_stok_minimal" required />
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Tipe Bahan</label>
                         <select class="form-select" name="tipe_bahan" id="update_tipe_bahan" required>
                             <option value="kering">Kering</option>
@@ -314,7 +321,6 @@ $result = mysqli_query($koneksi, $sql_list);
     $(document).ready(function () {
         $('#basic-datatables').DataTable();
 
-        // 1. Auto-hide alert + Clean URL
         if ($('.alert').length) {
             setTimeout(function () {
                 $('.alert').fadeOut('slow', function () {
@@ -323,17 +329,16 @@ $result = mysqli_query($koneksi, $sql_list);
             }, 3000);
         }
 
-        // 2. Event Delegation untuk Update
         $(document).on('click', '.btn-update', function() {
             $('#update_id_bb').val($(this).data('id_bb'));
             $('#update_nama_bb').val($(this).data('nama_bb'));
             $('#update_id_satuan').val($(this).data('id_satuan'));
             $('#update_id_kategori').val($(this).data('id_kategori'));
+            $('#update_stok_minimal').val($(this).data('stok_minimal'));
             $('#update_tipe_bahan').val($(this).data('tipe_bahan'));
             $('#updateBahanBakuModal').modal('show');
         });
 
-        // 3. Event Delegation untuk Delete
         $(document).on('click', '.btn-delete', function() {
             var id = $(this).data('id_bb');
             $('#confirmDeleteLink').attr('href', 'delete_bahanbaku.php?id=' + id);

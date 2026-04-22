@@ -7,7 +7,7 @@ $cek_induk = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHE
 $data_induk = mysqli_fetch_assoc($cek_induk);
 $id_induk_bsj = $data_induk['id_kategori'] ?? 0;
 
-// 2. Query List Data
+// 2. Query List Data (Termasuk kolom stok_minimal_bsj)
 $sql = "SELECT bsj.*, s.nama_satuan, k.nama_kategori
         FROM master_bahan_setengah_jadi bsj
         INNER JOIN master_satuan s ON bsj.id_satuan = s.id_satuan
@@ -107,7 +107,7 @@ $result = mysqli_query($koneksi, $sql);
         <div class="container">
             <div class="page-inner">
                 <div class="page-header">
-                    <h3 class="fw-bold mb-3">Master Bahan Setengah Jadi (BSJ)</h3>
+                    <h3 class="fw-bold mb-3">Master Data</h3>
                 </div>
 
                 <div class="row">
@@ -136,6 +136,7 @@ $result = mysqli_query($koneksi, $sql);
                                                 <th class="text-start">NAMA BAHAN</th>
                                                 <th>SATUAN</th>
                                                 <th>KATEGORI</th>
+                                                <th>MIN. STOK</th>
                                                 <th>TAHAP</th>
                                                 <th>ACTION</th>
                                             </tr>
@@ -148,6 +149,7 @@ $result = mysqli_query($koneksi, $sql);
                                                 <td class="text-start fw-bold"><?= htmlspecialchars($row['nama_bsj']) ?></td>
                                                 <td><?= htmlspecialchars($row['nama_satuan']) ?></td>
                                                 <td><?= htmlspecialchars($row['nama_kategori']) ?></td>
+                                                <td class="fw-bold text-primary"><?= $row['stok_minimal_bsj'] ?></td>
                                                 <td class="text-center">
                                                     <span class="badge <?= $row['tahap'] === 'bsj2' ? 'badge-t2' : 'badge-t1' ?>" 
                                                         style="color: #2a2f5b !important; font-weight: bold; font-family: inherit;">
@@ -160,7 +162,7 @@ $result = mysqli_query($koneksi, $sql);
                                                                 data-id_bsj="<?= $row['id_bsj'] ?>"
                                                                 data-nama_bsj="<?= htmlspecialchars($row['nama_bsj']) ?>"
                                                                 data-id_satuan="<?= $row['id_satuan'] ?>"
-                                                                data-id_kategori="<?= $row['id_kategori'] ?>"
+                                                                data-id_kategori="<?= $row['id_kategori'] ?>" data-stok_minimal_bsj="<?= $row['stok_minimal_bsj'] ?>"
                                                                 data-tahap="<?= $row['tahap'] ?>">
                                                             <i class="fa fa-edit"></i>
                                                         </button>
@@ -188,61 +190,70 @@ $result = mysqli_query($koneksi, $sql);
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="add_bahan_setengahjadi.php">
+                <input type="hidden" name="source" value="master_bsj">
+                
                 <div class="modal-header">
                     <h5 class="modal-title">Tambah Data Bahan Setengah Jadi</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Nama Bahan Setengah Jadi</label>
-                    <input type="text" class="form-control" name="nama_bsj" placeholder="Misal: Ayam Ungkep" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Satuan</label>
-                    <select class="form-select" name="id_satuan" required>
-                        <option value="" disabled selected>-- Pilih Satuan --</option>
-                        <?php
-                        $satuan = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
-                        while ($s = mysqli_fetch_assoc($satuan)) echo "<option value='".$s['id_satuan']."'>".$s['nama_satuan']."</option>";
-                        ?>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label text-primary fw-bold">Kategori (Hanya Sub-BSJ)</label>
-                    <select class="form-select" name="id_kategori" id="update_id_kategori" required>
-                        <?php
-                        // Samakan persis kodenya dengan yang di Modal Add kamu
-                        $query_induk_up = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'Bahan Setengah Jadi' LIMIT 1");
-                        $data_induk_up = mysqli_fetch_assoc($query_induk_up);
-                        $id_parent_bsj_up = $data_induk_up['id_kategori'] ?? 0;
+                    <div class="mb-3">
+                        <label class="form-label">Nama Bahan Setengah Jadi</label>
+                        <input type="text" class="form-control" name="nama_bsj" placeholder="Misal: Ayam Ungkep" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Satuan</label>
+                        <select class="form-select" name="id_satuan" required>
+                            <option value="" disabled selected>-- Pilih Satuan --</option>
+                            <?php
+                            $satuan = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
+                            while ($s = mysqli_fetch_assoc($satuan)) {
+                                echo "<option value='".$s['id_satuan']."'>".$s['nama_satuan']."</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-primary fw-bold">Kategori</label>
+                        <select class="form-select" name="id_kategori" required>
+                            <?php
+                            // Ambil ID induk Bahan Setengah Jadi
+                            $query_induk_up = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'Bahan Setengah Jadi' LIMIT 1");
+                            $data_induk_up = mysqli_fetch_assoc($query_induk_up);
+                            $id_parent_bsj_up = $data_induk_up['id_kategori'] ?? 0;
 
-                        $query_sub_up = mysqli_query($koneksi, "SELECT id_kategori, nama_kategori FROM master_kategori WHERE parent_id = '$id_parent_bsj_up' ORDER BY nama_kategori ASC");
-                        
-                        while ($sub_up = mysqli_fetch_assoc($query_sub_up)): ?>
-                            <option value="<?= $sub_up['id_kategori'] ?>">
-                                <?= htmlspecialchars($sub_up['nama_kategori']) ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
+                            $query_sub_up = mysqli_query($koneksi, "SELECT id_kategori, nama_kategori FROM master_kategori WHERE parent_id = '$id_parent_bsj_up' ORDER BY nama_kategori ASC");
+                            
+                            while ($sub_up = mysqli_fetch_assoc($query_sub_up)): ?>
+                                <option value="<?= $sub_up['id_kategori'] ?>">
+                                    <?= htmlspecialchars($sub_up['nama_kategori']) ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                        <div class="mb-3">
+                            <label class="form-label">Stok Minimal (Trigger Produksi)</label>
+                            <input type="number" step="0.01" class="form-control" name="stok_minimal_bsj" id="<?= (strpos($row['id_bsj'] ?? '', 'update') !== false) ? 'update_stok_minimal_bsj' : '' ?>" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tahap Produksi</label>
+                        <select class="form-select" name="tahap" required>
+                            <option value="bsj1">BSJ 1 </option>
+                            <option value="bsj2">BSJ 2 </option>
+                        </select>
+                    </div>
+                    <hr>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="langsung_bom" value="1" id="langsung_bom">
+                        <label class="form-check-label fw-bold" for="langsung_bom">
+                            Langsung buat BOM setelah simpan?
+                        </label>
+                    </div>
+                </div> 
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" id="btnSubmitAdd" class="btn btn-primary">Simpan</button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Tahap Produksi</label>
-                    <select class="form-select" name="tahap" required>
-                        <option value="bsj1">BSJ 1 (Olahan Dasar)</option>
-                        <option value="bsj2">BSJ 2 (Olahan Lanjutan)</option>
-                    </select>
-                </div>
-                <hr>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="langsung_bom" value="1" id="langsung_bom">
-                    <label class="form-check-label fw-bold" for="langsung_bom">
-                        Langsung buat resep (BOM) setelah simpan?
-                    </label>
-                </div>
-            </div> <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" id="btnSubmitAdd" class="btn btn-primary">Simpan</button>
-            </div>
             </form>
         </div>
     </div>
@@ -252,7 +263,9 @@ $result = mysqli_query($koneksi, $sql);
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" action="update_bahan_setengahjadi.php">
+                <input type="hidden" name="source" value="master_bsj">
                 <input type="hidden" name="id_bsj" id="update_id_bsj">
+                
                 <div class="modal-header">
                     <h5 class="modal-title">Update Data BSJ</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -267,8 +280,11 @@ $result = mysqli_query($koneksi, $sql);
                         <select class="form-select" name="id_satuan" id="update_id_satuan" required>
                             <?php
                             $satuan2 = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
-                            while ($s2 = mysqli_fetch_assoc($satuan2)) echo "<option value='".$s2['id_satuan']."'>".$s2['nama_satuan']."</option>";
-                            ?>
+                            while ($s2 = mysqli_fetch_assoc($satuan2)): ?>
+                                <option value="<?= $s2['id_satuan'] ?>">
+                                    <?= htmlspecialchars($s2['nama_satuan']) ?>
+                                </option>
+                            <?php endwhile; ?>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -289,12 +305,16 @@ $result = mysqli_query($koneksi, $sql);
                                 </option>
                             <?php endwhile; ?>
                         </select>
+                        <div class="mb-3">
+                            <label class="form-label">Stok Minimal (Trigger Produksi)</label>
+                            <input type="number" step="0.01" class="form-control" name="stok_minimal_bsj" id="<?= (strpos($row['id_bsj'] ?? '', 'update') !== false) ? 'update_stok_minimal_bsj' : '' ?>" required>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tahap Produksi</label>
                         <select class="form-select" name="tahap" id="update_tahap" required>
-                            <option value="bsj1">BSJ 1 (Olahan Dasar)</option>
-                            <option value="bsj2">BSJ 2 (Olahan Lanjutan)</option>
+                            <option value="bsj1">BSJ 1 </option>
+                            <option value="bsj2">BSJ 2 </option>
                         </select>
                     </div>
                 </div>
@@ -315,7 +335,7 @@ $result = mysqli_query($koneksi, $sql);
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                Apakah Anda yakin ingin menghapus bahan ini? Seluruh data resep (BOM) terkait akan ikut terhapus secara otomatis.
+                Apakah Anda yakin ingin menghapus bahan ini? Seluruh data BOM terkait akan ikut terhapus secara otomatis.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -356,6 +376,7 @@ $result = mysqli_query($koneksi, $sql);
             // Karena PHP di atas sudah kita batasi hanya 'Bumbu', 
             // maka kategori 'Bahan Baku' tidak akan bisa terpilih di sini.
             $('#update_id_kategori').val(ds.id_kategori).trigger('change');
+            $('#update_stok_minimal_bsj').val(ds.stok_minimal_bsj);
             
             $('#update_tahap').val(ds.tahap);
             $('#updateBsjModal').modal('show');

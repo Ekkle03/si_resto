@@ -1,122 +1,175 @@
 <?php
-// penerimaan.php - Menampilkan riwayat penerimaan barang
 session_start();
 include("../config/koneksi_mysql.php");
 
-// Ambil data riwayat penerimaan
-$riwayat = [];
-$sql = "
-    SELECT 
-        p.id_penerimaan, 
-        p.tanggal_penerimaan, 
-        p.keterangan,
-        (SELECT COUNT(*) FROM penerimaan_detail pd WHERE pd.id_penerimaan = p.id_penerimaan) AS jumlah_jenis_item
-    FROM penerimaan_barang p
-    ORDER BY p.tanggal_penerimaan DESC
-";
-$q = mysqli_query($koneksi, $sql);
-if ($q) while ($r = mysqli_fetch_assoc($q)) $riwayat[] = $r;
+// Query ambil data penerimaan, join ke tabel pembelian untuk ambil Kode PO-nya
+$sql = "SELECT p.*, pb.kode_pembelian 
+        FROM penerimaan p
+        LEFT JOIN pembelian pb ON p.id_pembelian = pb.id_pembelian
+        ORDER BY p.tgl_terima DESC, p.id_penerimaan DESC";
+$query = mysqli_query($koneksi, $sql);
 
-// Hapus pesan flash jika ada
-$pesan = '';
-if (isset($_SESSION['flash_msg'])) {
-    $pesan = $_SESSION['flash_msg'];
-    unset($_SESSION['flash_msg']);
-}
+// Variabel Navbar menggunakan session
+$nama = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
+$username = htmlspecialchars($_SESSION['username'] ?? 'guest');
+$role = htmlspecialchars($_SESSION['nama_role'] ?? '');
+$foto = !empty($_SESSION['foto_profil']) 
+        ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil']) 
+        : 'assets/img/profil/default.png';
 ?>
+
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Penerimaan Barang - Sistem Resto</title>
+    <title>Penerimaan Barang</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
-    
-    <!-- Fonts and icons -->
+
     <script src="assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
         WebFont.load({
-            google: { "families": ["Public Sans:300,400,500,600,700"] },
+            google: { families: ["Public Sans:300,400,500,600,700"] },
             custom: {
-                "families": ["Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons"],
-                "urls": ["assets/css/fonts.min.css"],
+                families: [ "Font Awesome 5 Solid", "Font Awesome 5 Regular", "Font Awesome 5 Brands", "simple-line-icons" ],
+                urls: ["assets/css/fonts.min.css"],
             },
         });
     </script>
 
-    <!-- CSS Files -->
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
+
     <style>
-        .btn-outline-primary-thicker {
-            border-width: 2px !important;
-            font-weight: 500 !important;
-        }
+        .btn-outline-primary-thicker { border-width: 2px !important; font-weight: 500 !important; }
     </style>
 </head>
 <body>
 <div class="wrapper">
     <?php include 'sidebar.php'; ?>
+
     <div class="main-panel">
         <div class="main-header">
-            <!-- (Header content goes here, e.g., navbar) -->
-        </div>
+            <div class="main-header-logo">
+                <div class="logo-header" data-background-color="dark">
+                    <a href="dashboard.php" class="logo">
+                        <img src="assets/img/logo/logo_resto.png" alt="Logo Resto" class="navbar-brand" height="30" />
+                    </a>
+                    <div class="nav-toggle">
+                        <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
+                        <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+                    </div>
+                    <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
+                </div>
+            </div>
+            <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                <div class="container-fluid">
+                    <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                        <li class="nav-item topbar-user dropdown hidden-caret">
+                            <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                                <div class="avatar-sm">
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
+                                </div>
+                                <span class="profile-username">
+                                    <span class="op-7">Selamat Datang,</span>
+                                    <span class="fw-bold"><?= $nama ?></span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                <div class="dropdown-user-scroll scrollbar-outer">
+                                    <li>
+                                        <div class="user-box">
+                                            <div class="avatar-lg">
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
+                                            </div>
+                                            <div class="u-text">
+                                                <h4><?= $nama ?></h4>
+                                                <p class="text-muted">@<?= $username ?></p>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
+                                                <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="../logout.php">Logout</a>
+                                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            </div>
+
         <div class="container">
             <div class="page-inner">
-                <div class="page-header">
-                    <h3 class="fw-bold mb-3">Transaksi Penerimaan</h3>
-                    <ul class="breadcrumbs">
-                        <li class="nav-home"><a href="#"><i class="icon-home"></i></a></li>
-                        <li class="separator"><i class="icon-arrow-right"></i></li>
-                        <li class="nav-item"><a href="#">Transaksi</a></li>
-                        <li class="separator"><i class="icon-arrow-right"></i></li>
-                        <li class="nav-item"><a href="#">Penerimaan Barang</a></li>
-                    </ul>
+                
+                <div class="page-header d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">Penerimaan Barang</h3>
+                    <div>
+                        <a href="add_penerimaan.php" class="btn btn-primary btn-round fw-bold shadow-sm">
+                            <i class="fa fa-plus me-1"></i> Tambah Penerimaan
+                        </a>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header d-flex align-items-center">
-                                <h4 class="card-title">Riwayat Penerimaan Barang</h4>
-                                <a href="add_penerimaan.php" class="btn btn-outline-primary btn-outline-primary-thicker btn-round ms-auto">
-                                    <i class="fa fa-plus"></i> Tambah Penerimaan
-                                </a>
+                        <div class="card card-round shadow-sm border-0">
+                            <div class="card-header bg-white d-flex align-items-center py-3">
+                                <h4 class="card-title fw-bold" style="font-size: 15px !important;">Riwayat Stok Masuk</h4>
                             </div>
                             <div class="card-body">
-                                <?php if ($pesan): ?>
-                                <div class="alert alert-success" role="alert"><?= htmlspecialchars($pesan) ?></div>
+                                <?php if (isset($_SESSION['flash_msg'])): ?>
+                                    <div class="alert alert-info border-0 shadow-sm auto-close">
+                                        <i class="fa fa-info-circle me-1"></i> <?= $_SESSION['flash_msg'] ?>
+                                    </div>
+                                    <?php unset($_SESSION['flash_msg']); ?>
                                 <?php endif; ?>
+
                                 <div class="table-responsive">
-                                    <table id="tabel-penerimaan" class="table table-striped table-bordered table-hover">
-                                        <thead>
+                                    <table id="table-penerimaan" class="display table table-striped table-hover table-bordered" style="width: 100%;">
+                                        <thead class="bg-light text-center">
                                             <tr>
-                                                <th style="width: 5%">ID</th>
-                                                <th>Tanggal</th>
-                                                <th>Keterangan</th>
-                                                <th class="text-center" style="width: 10%">Jumlah Item</th>
-                                                <th class="text-center" style="width: 15%">Aksi</th>
+                                                <th style="width: 50px;">NO</th>
+                                                <th>KODE</th>
+                                                <th>REFERENSI PB</th>
+                                                <th>TGL TERIMA</th>
+                                                <th>KETERANGAN</th>
+                                                <th style="width: 100px;">ACTION</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach($riwayat as $r): ?>
+                                            <?php $no=1; while($row = mysqli_fetch_assoc($query)): ?>
                                             <tr>
-                                                <td class="text-center"><?= htmlspecialchars($r['id_penerimaan']) ?></td>
-                                                <td><?= date('d-m-Y H:i', strtotime($r['tanggal_penerimaan'])) ?></td>
-                                                <td><?= htmlspecialchars($r['keterangan']) ?></td>
-                                                <td class="text-center"><?= htmlspecialchars($r['jumlah_jenis_item']) ?></td>
+                                                <td class="text-center text-muted"><?= $no++ ?></td>
+                                                <td class="text-dark fw-bold text-center"><?= $row['kode_penerimaan'] ?></td>
                                                 <td class="text-center">
-                                                    <div class="form-button-action">
-                                                        <a href="detail_penerimaan.php?id=<?= $r['id_penerimaan'] ?>" data-bs-toggle="tooltip" title="Lihat Detail" class="btn btn-info btn-sm">
+                                                    <span class="badge badge-info shadow-sm"><?= $row['kode_pembelian'] ?? '-' ?></span>
+                                                </td>
+                                                <td class="text-center"><?= date('d/m/Y', strtotime($row['tgl_terima'])) ?></td>
+                                                <td><?= htmlspecialchars($row['keterangan'] ?: '-') ?></td>
+                                                <td class="text-center">
+                                                    <div class="form-button-action justify-content-center">
+                                                        <a href="detail_penerimaan.php?id=<?= $row['id_penerimaan'] ?>" class="btn btn-link btn-primary p-1" title="Lihat Detail">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
-                                                        <button type="button" data-bs-toggle="tooltip" title="Hapus Transaksi" class="btn btn-danger btn-sm btn-delete" data-id_penerimaan='<?= htmlspecialchars($r['id_penerimaan']) ?>'>
-                                                            <i class="fa fa-times"></i>
-                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <?php endforeach; ?>
+                                            <?php endwhile; ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -129,56 +182,48 @@ if (isset($_SESSION['flash_msg'])) {
     </div>
 </div>
 
-<!-- Modal Konfirmasi Hapus -->
-<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">Konfirmasi Hapus</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Apakah Anda yakin ingin menghapus data penerimaan ini? Stok barang yang sudah ditambahkan akan ikut terhapus.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <a href="#" id="confirmDeleteLink" class="btn btn-danger">Hapus</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!--   Core JS Files   -->
 <script src="assets/js/core/jquery-3.7.1.min.js"></script>
 <script src="assets/js/core/popper.min.js"></script>
 <script src="assets/js/core/bootstrap.min.js"></script>
-<!-- Datatables -->
 <script src="assets/js/plugin/datatables/datatables.min.js"></script>
-<!-- Kaiadmin JS -->
+<script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
 <script src="assets/js/kaiadmin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     $(document).ready(function() {
-        $('#tabel-penerimaan').DataTable();
-        
-        // Inisialisasi Tooltip
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
-
-        // Event listener untuk tombol Delete
-        document.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', function() {
-                const penerimaanId = this.dataset.id_penerimaan;
-                const deleteLink = document.getElementById('confirmDeleteLink');
-                // Nanti buat file delete_penerimaan.php untuk menghapus header dan detail, serta mengembalikan stok.
-                deleteLink.href = 'delete_penerimaan.php?id=' + penerimaanId; 
-                const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-                deleteModal.show();
-            });
+        $('#table-penerimaan').DataTable({
+            "order": [], // Biar default sorting PHP gak ditimpa otomatis di kolom 1
+            "columnDefs": [
+                { "orderable": false, "targets": [5] } // Matikan sorting di kolom aksi
+            ]
         });
+
+        // Tangkap parameter sukses dari URL (Habis tambah penerimaan)
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
+        const msg = urlParams.get('msg');
+
+        if (status === 'success') {
+            $.notify({
+                icon: 'fa fa-check-circle',
+                title: 'Berhasil!',
+                message: msg ? msg : 'Data berhasil disimpan',
+            },{
+                type: 'success',
+                placement: { from: "top", align: "right" },
+                time: 1000, delay: 3000,
+            });
+
+            // Bersihkan parameter di URL biar notifnya hilang pas di-refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Auto-close buat flash message PHP (kalau ada)
+        window.setTimeout(function() {
+            $(".auto-close").fadeTo(500, 0).slideUp(500, function(){ $(this).remove(); });
+        }, 3000);
     });
 </script>
 </body>
 </html>
-
