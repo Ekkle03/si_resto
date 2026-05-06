@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 if (!isset($_GET['id'])) {
@@ -114,8 +115,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                         </div>
                                     </li>
                                     <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>

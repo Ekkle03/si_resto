@@ -1,5 +1,5 @@
 <?php
-// PASTIKAN: Tidak ada spasi atau baris kosong sebelum tag <?php ini!
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 if (isset($_POST['id_bsj']) && isset($_POST['qty_bom'])) {

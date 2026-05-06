@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // Query ambil data penerimaan, join ke tabel pembelian untuk ambil Kode PO-nya
@@ -22,7 +23,7 @@ $foto = !empty($_SESSION['foto_profil'])
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Penerimaan Barang</title>
+    <title>Penerimaan Bahan</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -102,8 +103,6 @@ $foto = !empty($_SESSION['foto_profil'])
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                        <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
                                 </div>
@@ -118,7 +117,7 @@ $foto = !empty($_SESSION['foto_profil'])
             <div class="page-inner">
                 
                 <div class="page-header d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold mb-0">Penerimaan Barang</h3>
+                    <h3 class="fw-bold mb-0">Penerimaan Bahan</h3>
                     <div>
                         <a href="add_penerimaan.php" class="btn btn-primary btn-round fw-bold shadow-sm">
                             <i class="fa fa-plus me-1"></i> Tambah Penerimaan

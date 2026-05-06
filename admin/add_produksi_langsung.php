@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -52,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     if (mysqli_stmt_execute($stmt)) {
         // Notifikasi dibuat lebih dinamis mengikuti satuan produknya
-        $_SESSION['flash_msg'] = "Rencana produksi <b>$kode_produksi</b> berhasil disimpan (Total: " . (float)$qty_rencana_hasil . " $nama_satuan).";
+        $_SESSION['flash_msg'] = "Rencana produksi $kode_produksi berhasil disimpan (Total: " . (float)$qty_rencana_hasil . " $nama_satuan).";
     } else {
         $_SESSION['flash_msg'] = "Sistem Error: " . mysqli_error($koneksi);
     }

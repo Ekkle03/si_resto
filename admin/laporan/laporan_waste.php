@@ -1,19 +1,12 @@
 <?php
 session_start();
-// Naik 2 tingkat ke config karena file ini ada di dalam folder admin/laporan/
+include("../../config/auth.php");
 include("../../config/koneksi_mysql.php");
 
 // 1. Tangkap Parameter Filter (Default: Bulan Ini)
 $tgl_awal  = isset($_GET['tgl_awal']) ? $_GET['tgl_awal'] : date('Y-m-01');
 $tgl_akhir = isset($_GET['tgl_akhir']) ? $_GET['tgl_akhir'] : date('Y-m-d');
 $id_gudang = isset($_GET['id_gudang']) ? $_GET['id_gudang'] : ''; 
-
-// 2. Variabel Session Navbar
-$nama     = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
-$username = htmlspecialchars($_SESSION['username']     ?? 'guest');
-$foto_user = !empty($_SESSION['foto_profil'])
-            ? '../assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil'])
-            : '../assets/img/profil/default.png';
 
 // FUNGSI PEMBERSIH KODE (Merubah PRD123 / RCV123 jadi bahasa manusia)
 function bersihkanAlasan($teks) {
@@ -107,8 +100,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                         </div>
                                     </li>
                                     <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../../logout.php">Logout</a>
                                     </li>

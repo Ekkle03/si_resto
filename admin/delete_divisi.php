@@ -1,7 +1,7 @@
 <?php
 // Mulai session di awal
 session_start();
-
+include("../config/auth.php");
 // Hubungkan ke database
 include("../config/koneksi_mysql.php");
 

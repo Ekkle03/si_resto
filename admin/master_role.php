@@ -1,12 +1,20 @@
 <?php
 // Mulai session di awal
 session_start();
-
+include("../config/auth.php");
 // Hubungkan ke database
 include("../config/koneksi_mysql.php");
 
 // Mengambil data role dari database
 $result = mysqli_query($koneksi, "SELECT * FROM master_role ORDER BY id_role ASC");
+
+// ── Navbar: siapkan variabel session ──────────────────────────────────────────
+$nama     = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
+$username = htmlspecialchars($_SESSION['username']     ?? 'guest');
+$role     = htmlspecialchars($_SESSION['nama_role']    ?? '');
+$foto     = !empty($_SESSION['foto_profil'])
+            ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil'])
+            : 'assets/img/profil/default.png';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,43 +67,55 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_role ORDER BY id_role ASC
                         <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                     </div>
                 </div>
-                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-                    <div class="container-fluid">
-                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-user dropdown hidden-caret">
-                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                    <div class="avatar-sm">
-                                        <img src="assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle" />
-                                    </div>
-                                    <span class="profile-username">
-                                        <span class="op-7">Selamat Datang,</span>
-                                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></span>
-                                    </span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-user animated fadeIn">
-                                    <div class="dropdown-user-scroll scrollbar-outer">
-                                        <li>
-                                            <div class="user-box">
-                                                <div class="avatar-lg"><img src="assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" /></div>
-                                                <div class="u-text">
-                                                    <h4><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></h4>
-                                                    <p class="text-muted"><?= htmlspecialchars($_SESSION['username'] ?? 'guest') ?></p>
-                                                    <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
-                                                </div>
+                <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
+            <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                <div class="container-fluid">
+                    <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                        <li class="nav-item topbar-user dropdown hidden-caret">
+                            <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                                <div class="avatar-sm">
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
+                                </div>
+                                <span class="profile-username">
+                                    <span class="op-7">Selamat Datang,</span>
+                                    <span class="fw-bold"><?= $nama ?></span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                <div class="dropdown-user-scroll scrollbar-outer">
+                                    <li>
+                                        <div class="user-box">
+                                            <div class="avatar-lg">
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
                                             </div>
-                                        </li>
-                                        <li>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="../logout.php">Logout</a>
-                                        </li>
-                                    </div>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
+                                            <div class="u-text">
+                                                <h4><?= $nama ?></h4>
+                                                <p class="text-muted">@<?= $username ?></p>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
+                                                <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="../logout.php">Logout</a>
+                                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
             </div>
 
             <div class="container">
@@ -108,9 +128,11 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_role ORDER BY id_role ASC
                             <div class="card">
                                 <div class="card-header d-flex align-items-center">
                                     <h4 class="card-title">Data Master Role</h4>
+                                    <?php if (can_edit()): ?>
                                     <button class="btn btn-outline-primary btn-outline-primary-thicker btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#addRoleModal">
                                         <i class="fa fa-plus"></i> Tambah Data
                                     </button>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="card-body">
                                     <?php if (isset($_GET['msg'])): ?>
@@ -126,7 +148,9 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_role ORDER BY id_role ASC
                                                 <tr>
                                                     <th style="width: 15%;" class="text-center">ID Role</th>
                                                     <th class="text-center">Nama Role</th>
+                                                    <?php if (can_edit()): ?>
                                                     <th style="width: 20%;" class="text-center">Action</th>
+                                                    <?php endif; ?>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -134,6 +158,8 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_role ORDER BY id_role ASC
                                                 <tr>
                                                     <td class="text-center"><?= htmlspecialchars($row['id_role']) ?></td>
                                                     <td><?= htmlspecialchars($row['nama_role']) ?></td>
+                                                    
+                                                    <?php if (can_edit()): ?>
                                                     <td class="text-center">
                                                         <div class="form-button-action">
                                                             <button type="button" data-bs-toggle="tooltip" title="Edit Data" class="btn btn-primary btn-sm btn-update" data-id_role='<?= htmlspecialchars($row['id_role']) ?>' data-nama_role='<?= htmlspecialchars($row['nama_role']) ?>'>
@@ -144,6 +170,8 @@ $result = mysqli_query($koneksi, "SELECT * FROM master_role ORDER BY id_role ASC
                                                             </button>
                                                         </div>
                                                     </td>
+                                                    <?php endif; ?>
+
                                                 </tr>
                                                 <?php endwhile; ?>
                                             </tbody>

@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // 1. Proteksi Halaman: Pastikan hanya yang login bisa hapus

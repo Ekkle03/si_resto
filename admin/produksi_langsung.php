@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // --- GENERATOR KODE PRODUKSI OTOMATIS (Reset per Bulan) ---
@@ -144,8 +145,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                         </div>
                                     </li>
                                     <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
@@ -410,7 +409,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                     var data = JSON.parse(res);
                     target_per_bom = parseFloat(data.target);
                     nama_satuan = data.satuan;
-                    $('#info_yield').html('<i class="fa fa-info-circle"></i> Info Resep: 1 BOM = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
+                    $('#info_yield').html('<i class="fa fa-info-circle"></i> Info BOM: 1 BOM = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
                     cekStokRealTime();
                 });
             } else {

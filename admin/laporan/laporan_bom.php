@@ -1,6 +1,6 @@
 <?php
 session_start();
-// Naik 2 tingkat ke config karena file ini ada di dalam folder admin/laporan/
+include("../../config/auth.php");
 include("../../config/koneksi_mysql.php");
 
 // 1. Tangkap Parameter Filter
@@ -20,7 +20,7 @@ $foto_user = !empty($_SESSION['foto_profil'])
 <html lang="id">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Laporan Pemakaian Bahan - AYAM GORENG KABAYAN</title>
+    <title>Laporan Pemakaian Bahan</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="../assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -98,8 +98,6 @@ $foto_user = !empty($_SESSION['foto_profil'])
                                         </li>
                                         <li>
                                             <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                            <div class="dropdown-divider"></div>
                                             <a class="dropdown-item" href="../../logout.php">Logout</a>
                                         </li>
                                     </div>
@@ -113,7 +111,7 @@ $foto_user = !empty($_SESSION['foto_profil'])
             <div class="container">
                 <div class="page-inner">
                     <div class="page-header">
-                        <h3 class="fw-bold mb-3 text-uppercase">Laporan Pemakaian Bahan Baku</h3>
+                        <h3 class="fw-bold mb-3 text-uppercase">Laporan Pemakaian Bahan</h3>
                     </div>
 
                     <div class="card card-round shadow-sm mb-4 border-0 filter-card">

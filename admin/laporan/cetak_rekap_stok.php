@@ -1,6 +1,6 @@
 <?php
 session_start();
-// Naik 2 tingkat ke config
+include("../../config/auth.php");
 include("../../config/koneksi_mysql.php");
 
 // 1. Ambil Parameter

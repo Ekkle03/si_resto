@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // Query Header: Ambil data permintaan dan nama gudang tujuan
@@ -95,8 +96,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                        <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
                                 </div>
@@ -111,11 +110,13 @@ $foto     = !empty($_SESSION['foto_profil'])
             <div class="page-inner">
                 <div class="page-header d-flex justify-content-between align-items-center">
                     <h3 class="fw-bold mb-0">Permintaan Bahan</h3>
+                    <?php if (strtolower($role) != 'purchasing'): ?>
                     <div>
                         <button class="btn btn-primary btn-round fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahRequest">
                             <i class="fa fa-plus me-1"></i> Buat Permintaan
                         </button>
                     </div>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="row">
@@ -133,7 +134,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                                         <thead class="bg-light text-center">
                                             <tr class="small text-uppercase fw-bold">
                                                 <th style="width: 50px;">No</th>
-                                                <th>Kode Nota</th>
+                                                <th>Kode</th>
                                                 <th>Tanggal</th>
                                                 <th>Tujuan</th>
                                                 <th>Status</th>
@@ -161,7 +162,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                                                 <td class="text-center"><span class="badge <?= $badgeClass ?>"><?= $status ?></span></td>
                                                 <td class="text-center">
                                                     <div class="form-button-action justify-content-center">
-                                                        <?php if ($status == 'Pending' || $status == 'Sebagian'): ?>
+                                                        <?php if (strtolower($role) == 'purchasing' && ($status == 'Pending' || $status == 'Sebagian')): ?>
                                                             <button type="button" class="btn btn-link btn-success p-1 btn-konfirmasi" 
                                                                     data-id="<?= $row['id_header_req'] ?>" 
                                                                     data-kode="<?= $row['kode_request'] ?>"
@@ -169,7 +170,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                                                 <i class="fa fa-check"></i>
                                                             </button>
                                                         <?php endif; ?>
-
                                                         <a href="permintaan_detail_view.php?id=<?= $row['id_header_req'] ?>" class="btn btn-link btn-primary p-1" title="Lihat Detail">
                                                             <i class="fa fa-eye"></i>
                                                         </a>

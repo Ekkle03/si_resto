@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // --- GENERATOR KODE PRODUKSI OTOMATIS (Reset per Bulan) ---
@@ -53,7 +54,7 @@ $foto = !empty($_SESSION['foto_profil'])
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Produksi 1 - Sistem Resto</title>
@@ -75,8 +76,17 @@ $foto = !empty($_SESSION['foto_profil'])
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 
+    <!-- TAMBAHAN: Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .btn-outline-primary-thicker { border-width: 2px !important; font-weight: 500 !important; }
+        
+        /* Desain Select2 biar seragam dengan form Bootstrap bawaan */
+        .select2-container--default .select2-selection--single {
+            height: calc(2.25rem + 2px); padding: .375rem .75rem; border: 1px solid #ebedf2; border-radius: .25rem;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: calc(2.25rem + 2px); }
+        .select2-container .select2-selection--single .select2-selection__rendered { padding-left: 0; color: #495057; }
     </style>
 </head>
 <body>
@@ -95,40 +105,61 @@ $foto = !empty($_SESSION['foto_profil'])
                     <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                 </div>
             </div>
+            <!-- ── NAVBAR ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                         <li class="nav-item topbar-user dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                <div class="avatar-sm"><img src="<?= $foto ?>" alt="..." class="avatar-img rounded-circle" onerror="this.src='assets/img/profil/default.png'"/></div>
-                                <span class="profile-username"><span class="op-7">Selamat Datang,</span> <span class="fw-bold"><?= $nama ?></span></span>
+                                <div class="avatar-sm">
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
+                                </div>
+                                <span class="profile-username">
+                                    <span class="op-7">Selamat Datang,</span>
+                                    <span class="fw-bold"><?= $nama ?></span>
+                                </span>
                             </a>
                             <ul class="dropdown-menu dropdown-user animated fadeIn">
                                 <div class="dropdown-user-scroll scrollbar-outer">
                                     <li>
                                         <div class="user-box">
-                                            <div class="avatar-lg"><img src="<?= $foto ?>" alt="image profile" class="avatar-img rounded" onerror="this.src='assets/img/profil/default.png'"/></div>
+                                            <div class="avatar-lg">
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
+                                            </div>
                                             <div class="u-text">
                                                 <h4><?= $nama ?></h4>
                                                 <p class="text-muted">@<?= $username ?></p>
-                                                <?php if (!empty($role)): ?><span class="badge bg-secondary mb-2"><?= $role ?></span><?php endif; ?>
-                                                <br><a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
+                                                <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
                                             </div>
                                         </div>
                                     </li>
-                                    <li><div class="dropdown-divider"></div><a class="dropdown-item" href="#">Pengaturan Akun</a><div class="dropdown-divider"></div><a class="dropdown-item" href="../logout.php">Logout</a></li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="../logout.php">Logout</a>
+                                    </li>
                                 </div>
                             </ul>
                         </li>
                     </ul>
                 </div>
             </nav>
+            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
         </div>
 
         <div class="container">
             <div class="page-inner">
                 <div class="page-header d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold mb-0">Produksi Berjenjang (Tahap 1 & 2)</h3>
+                    <h3 class="fw-bold mb-0">Produksi Bertahap (Tahap 1 & 2)</h3>
                     <div>
                         <button class="btn btn-primary btn-round fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addProduksiModal">
                             <i class="fa fa-plus me-1"></i> Tambah Produksi
@@ -216,6 +247,7 @@ $foto = !empty($_SESSION['foto_profil'])
     </div>
 </div>
 
+<!-- Modal Tambah Produksi -->
 <div class="modal fade" id="addProduksiModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px;">
@@ -232,15 +264,16 @@ $foto = !empty($_SESSION['foto_profil'])
 
                     <div class="form-group mb-3 text-start">
                         <label class="fw-bold mb-1">Pilih Hasil Produksi</label>
-                        <select name="id_bsj" id="select_produk_berjenjang" class="form-select" required>
-                            <option value="">-- Pilih BSJ 1 / BSJ 2 --</option>
+                        <!-- PERBAIKAN: form-select dan style width 100% -->
+                        <select name="id_bsj" id="select_produk_berjenjang" class="form-select" style="width: 100%;" required>
+                            <option value=""></option> <!-- Kosongkan text untuk Select2 Placeholder -->
                             <?php foreach ($item_produksi_list as $item): ?>
                                 <option value="<?= $item['id_bsj'] ?>">[<?= strtoupper($item['tahap']) ?>] <?= htmlspecialchars($item['nama_bsj']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group mb-3 text-start">
-                        <label class="fw-bold mb-1">Jumlah BOM (Resep)</label>
+                        <label class="fw-bold mb-1">Jumlah BOM</label>
                         <div class="input-group">
                             <input type="number" step="1" class="form-control" name="qty_bom_input" id="qty_bom_input" required placeholder="0">
                             <span class="input-group-text bg-light fw-bold">BOM</span>
@@ -265,6 +298,7 @@ $foto = !empty($_SESSION['foto_profil'])
     </div>
 </div>
 
+<!-- Modal Selesai Produksi -->
 <div class="modal fade" id="modalConfirmFinish" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px;">
@@ -309,6 +343,7 @@ $foto = !empty($_SESSION['foto_profil'])
     </div>
 </div>
 
+<!-- Modal Rincian Bahan -->
 <div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px;">
@@ -361,11 +396,21 @@ $foto = !empty($_SESSION['foto_profil'])
 <script src="assets/js/kaiadmin.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- TAMBAHAN: Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
     $(document).ready(function() {
         // Inisialisasi DataTable tanpa sorting otomatis agar data terbaru tetap di atas
         $('#tabel-produksi').DataTable({ 
             "ordering": false 
+        });
+        
+        // --- TAMBAHAN: AKTIVASI SELECT2 ---
+        $('#select_produk_berjenjang').select2({
+            dropdownParent: $('#addProduksiModal'),
+            placeholder: "-- Pilih BSJ 1 / BSJ 2 --",
+            allowClear: true
         });
         
         // Set tanggal input otomatis ke hari ini
@@ -489,7 +534,7 @@ $foto = !empty($_SESSION['foto_profil'])
                     var data = JSON.parse(res);
                     target_per_bom = parseFloat(data.target);
                     nama_satuan = data.satuan;
-                    $('#info_yield_berjenjang').html('<i class="fa fa-info-circle"></i> Info Resep: 1 BOM = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
+                    $('#info_yield_berjenjang').html('<i class="fa fa-info-circle"></i> Info BOM: 1 BOM = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
                     hitungDanCekStok(id);
                 });
             } else {

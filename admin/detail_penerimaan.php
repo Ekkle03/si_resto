@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // 1. Tangkap ID Penerimaan dari URL
@@ -50,10 +51,10 @@ $foto     = !empty($_SESSION['foto_profil'])
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>BOM - Sistem Resto</title>
+    <title>Penerimaan Bahan</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -73,7 +74,6 @@ $foto     = !empty($_SESSION['foto_profil'])
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 
     <style>
-        .btn-outline-primary-thicker { border-width: 2px !important; font-weight: 500 !important; }
         .info-label { font-size: 11px; text-transform: uppercase; color: #8d9498; font-weight: 700; margin-bottom: 3px; }
         .info-value { font-size: 14px; font-weight: 600; color: #2a2f5b; }
         .badge-ref { font-size: 12px; padding: 5px 10px; }
@@ -98,7 +98,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                     <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                 </div>
             </div>
-            <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
+            <!-- ── NAVBAR ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
@@ -138,8 +138,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                        <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
                                 </div>
@@ -148,110 +146,111 @@ $foto     = !empty($_SESSION['foto_profil'])
                     </ul>
                 </div>
             </nav>
-            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
-
         </div>
         
         <div class="container">
-                <div class="page-inner">
-                    <div class="page-header mb-0 mt-3 pb-3 border-bottom">
-                        <h3 class="fw-bold mb-0 text-dark">Detail Penerimaan Stok</h3>
-                    </div>
+            <div class="page-inner">
+                <div class="page-header mb-0 mt-3 pb-3 border-bottom">
+                    <h3 class="fw-bold mb-0 text-dark">Detail Penerimaan Bahan</h3>
+                </div>
 
-                    <div class="row mt-4">
-                        <div class="col-md-12">
-                            <div class="card card-round shadow-sm border-0">
-                                <div class="card-header bg-white d-flex align-items-center py-3">
-                                    <div class="card-title mb-0">
-                                        <span class="text-muted" style="font-weight: 400; font-size: 14px;">KODE RCV:</span> 
-                                        <span class="text-dark fw-bold" style="font-size: 16px;"><?= $header['kode_penerimaan'] ?></span>
-                                    </div>
-                                    <a href="penerimaan.php" class="btn btn-warning btn-round fw-bold btn-sm ms-auto shadow-sm">
-                                        <i class="fa fa-arrow-left me-1"></i> Kembali
-                                    </a>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        
+                        <!-- CARD 1: KHUSUS INFO HEADER (Dipisah dari Tabel) -->
+                        <div class="card card-round shadow-sm border-0 mb-4">
+                            <div class="card-header bg-white d-flex align-items-center py-3">
+                                <div class="card-title mb-0">
+                                    <span class="text-muted" style="font-weight: 400; font-size: 14px;">KODE RCV:</span> 
+                                    <span class="text-dark fw-bold" style="font-size: 16px;"><?= $header['kode_penerimaan'] ?></span>
                                 </div>
-                                <div class="card-body">
-                                    <div class="row mb-4 bg-light rounded p-3 mx-0 border" style="box-shadow: inset 0 0 10px rgba(0,0,0,0.02);">
-                                        <div class="col-md-3 border-end">
-                                            <div class="info-label">Tanggal Terima</div>
-                                            <div class="info-value"><?= date('d/m/Y', strtotime($header['tgl_terima'])) ?></div>
-                                        </div>
-                                        <div class="col-md-3 border-end ps-4">
-                                            <div class="info-label">Referensi PB</div>
-                                            <div class="info-value">
-                                                <span class="badge badge-info badge-ref shadow-sm"><?= $header['kode_pembelian'] ?? '-' ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 ps-4">
-                                            <div class="info-label">Keterangan</div>
-                                            <div class="info-value"><?= !empty($header['keterangan']) ? $header['keterangan'] : '-' ?></div>
+                                <a href="penerimaan.php" class="btn btn-warning btn-round fw-bold btn-sm ms-auto shadow-sm">
+                                    <i class="fa fa-arrow-left me-1"></i> Kembali
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mx-0">
+                                    <div class="col-md-3 border-end">
+                                        <div class="info-label">Tanggal Terima</div>
+                                        <div class="info-value"><?= date('d/m/Y', strtotime($header['tgl_terima'])) ?></div>
+                                    </div>
+                                    <div class="col-md-3 border-end ps-4">
+                                        <div class="info-label">Referensi PB</div>
+                                        <div class="info-value">
+                                            <span class="badge badge-info badge-ref shadow-sm"><?= $header['kode_pembelian'] ?? '-' ?></span>
                                         </div>
                                     </div>
-
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-bordered table-detail mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th class="text-center" style="width: 5%;">NO</th>
-                                                    <th class="text-center" style="width: 15%;">KODE BAHAN</th>
-                                                    <th class="text-start" style="width: 30%;">NAMA BAHAN BAKU</th>
-                                                    <th class="text-center text-success" style="width: 20%;">QTY DITERIMA</th>
-                                                    <th class="text-center text-danger" style="width: 20%;">QTY WASTE</th>
-                                                    <th class="text-center" style="width: 10%;">SATUAN</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php 
-                                                $no = 1;
-                                                while ($d = mysqli_fetch_assoc($query_detail)): 
-                                                    if (!empty($d['nilai_konversi']) && $d['nilai_konversi'] > 0) {
-                                                        $qty_final = $d['qty_terima'] / $d['nilai_konversi'];
-                                                        $satuan_final = $d['satuan_konversi'];
-                                                        $faktor_bagi = $d['nilai_konversi'];
-                                                    } else {
-                                                        $qty_final = $d['qty_terima'];
-                                                        $satuan_final = $d['satuan_asli'];
-                                                        $faktor_bagi = 1;
-                                                    }
-
-                                                    // CEK SILANG KE TABEL WASTE (Apakah ada barang ini yang di-waste di nota ini?)
-                                                    $id_bb_cek = $d['id_bb'];
-                                                    $q_waste = mysqli_query($koneksi, "SELECT SUM(qty_waste) as total_rusak 
-                                                                                       FROM detail_waste 
-                                                                                       WHERE sumber = 'Penerimaan' 
-                                                                                       AND id_referensi_sumber = '$id_penerimaan' 
-                                                                                       AND id_bb = '$id_bb_cek'");
-                                                    $d_waste = mysqli_fetch_assoc($q_waste);
-                                                    $qty_rusak_mentah = $d_waste['total_rusak'] ?? 0;
-                                                    
-                                                    // Konversi juga qty rusak agar satuannya sama
-                                                    $qty_rusak_final = $qty_rusak_mentah / $faktor_bagi;
-                                                ?>
-                                                <tr>
-                                                    <td class="text-center text-muted align-middle"><?= $no++ ?></td>
-                                                    <td class="text-center fw-bold text-dark align-middle"><?= $d['kode_bb'] ?></td>
-                                                    <td class="align-middle"><?= $d['nama_bb'] ?></td>
-                                                    <td class="text-center fw-bold text-success align-middle" style="font-size: 15px;">
-                                                        <?= (float)$qty_final ?>
-                                                    </td>
-                                                    <td class="text-center fw-bold text-danger align-middle">
-                                                        <?= $qty_rusak_final > 0 ? (float)$qty_rusak_final : '-' ?>
-                                                    </td>
-                                                    <td class="text-center text-muted align-middle">
-                                                        <?= $satuan_final ?>
-                                                    </td>
-                                                </tr>
-                                                <?php endwhile; ?>
-                                            </tbody>
-                                        </table>
+                                    <div class="col-md-6 ps-4">
+                                        <div class="info-label">Keterangan</div>
+                                        <div class="info-value"><?= !empty($header['keterangan']) ? $header['keterangan'] : '-' ?></div>
                                     </div>
-                                </div>
-                                <div class="card-footer bg-white py-3 border-top-0">
-                                    <small class="text-muted" style="font-style: italic; font-size: 11px;">
-                                    </small>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- CARD 2: KHUSUS TABEL -->
+                        <div class="card card-round shadow-sm border-0">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table id="table-penerimaan-detail" class="display table table-hover table-bordered table-detail mb-0" style="width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center" style="width: 5%;">NO</th>
+                                                <th class="text-center" style="width: 15%;">KODE BAHAN</th>
+                                                <th class="text-start" style="width: 30%;">NAMA BAHAN BAKU</th>
+                                                <th class="text-center text-success" style="width: 20%;">QTY DITERIMA</th>
+                                                <th class="text-center text-danger" style="width: 20%;">QTY WASTE</th>
+                                                <th class="text-center" style="width: 10%;">SATUAN</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php 
+                                            $no = 1;
+                                            while ($d = mysqli_fetch_assoc($query_detail)): 
+                                                if (!empty($d['nilai_konversi']) && $d['nilai_konversi'] > 0) {
+                                                    $qty_final = $d['qty_terima'] / $d['nilai_konversi'];
+                                                    $satuan_final = $d['satuan_konversi'];
+                                                    $faktor_bagi = $d['nilai_konversi'];
+                                                } else {
+                                                    $qty_final = $d['qty_terima'];
+                                                    $satuan_final = $d['satuan_asli'];
+                                                    $faktor_bagi = 1;
+                                                }
+
+                                                // CEK SILANG KE TABEL WASTE
+                                                $id_bb_cek = $d['id_bb'];
+                                                $q_waste = mysqli_query($koneksi, "SELECT SUM(qty_waste) as total_rusak 
+                                                                                   FROM detail_waste 
+                                                                                   WHERE sumber = 'Penerimaan' 
+                                                                                   AND id_referensi_sumber = '$id_penerimaan' 
+                                                                                   AND id_bb = '$id_bb_cek'");
+                                                $d_waste = mysqli_fetch_assoc($q_waste);
+                                                $qty_rusak_mentah = $d_waste['total_rusak'] ?? 0;
+                                                
+                                                // Konversi juga qty rusak agar satuannya sama
+                                                $qty_rusak_final = $qty_rusak_mentah / $faktor_bagi;
+                                            ?>
+                                            <tr>
+                                                <td class="text-center text-muted align-middle"><?= $no++ ?></td>
+                                                <td class="text-center fw-bold text-dark align-middle"><?= $d['kode_bb'] ?></td>
+                                                <td class="align-middle"><?= $d['nama_bb'] ?></td>
+                                                <td class="text-center fw-bold text-success align-middle" style="font-size: 15px;">
+                                                    <?= (float)$qty_final ?>
+                                                </td>
+                                                <td class="text-center fw-bold text-danger align-middle">
+                                                    <?= $qty_rusak_final > 0 ? (float)$qty_rusak_final : '-' ?>
+                                                </td>
+                                                <td class="text-center text-muted align-middle">
+                                                    <?= $satuan_final ?>
+                                                </td>
+                                            </tr>
+                                            <?php endwhile; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -260,6 +259,21 @@ $foto     = !empty($_SESSION['foto_profil'])
 
     <script src="assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="assets/js/core/bootstrap.min.js"></script>
+    <!-- Tambahan Script DataTables -->
+    <script src="assets/js/plugin/datatables/datatables.min.js"></script>
     <script src="assets/js/kaiadmin.min.js"></script>
+
+    <!-- Script Aktivasi DataTables -->
+    <script>
+        $(document).ready(function() {
+            $('#table-penerimaan-detail').DataTable({
+                "pageLength": 10,
+                "bLengthChange": true,
+                "bFilter": true,
+                "bInfo": true,
+                "order": [] // Disable urut otomatis
+            });
+        });
+    </script>
 </body>
 </html>

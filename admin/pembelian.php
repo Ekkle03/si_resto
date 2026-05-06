@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // Ambil data riwayat rencana belanja menggunakan kolom kode_pembelian
@@ -99,8 +100,6 @@ $foto = !empty($_SESSION['foto_profil'])
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                        <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
                                 </div>
@@ -126,7 +125,7 @@ $foto = !empty($_SESSION['foto_profil'])
                     <div class="col-md-12">
                         <div class="card card-round shadow-sm border-0">
                             <div class="card-header bg-white d-flex align-items-center py-3">
-                                <h4 class="card-title fw-bold" style="font-size: 15px !important;">Daftar Rencana Belanja</h4>
+                                <h4 class="card-title fw-bold" style="font-size: 15px !important;">Daftar Rencana Pembelian</h4>
                             </div>
                             <div class="card-body">
                                 <?php if (isset($_SESSION['flash_msg'])): ?>

@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // Query utama untuk menampilkan data konversi dengan JOIN ke master_satuan
@@ -11,12 +12,21 @@ $query = "SELECT mk.*,
           JOIN master_satuan sk ON mk.satuan_kecil = sk.id_satuan
           ORDER BY mk.id_konversi DESC";
 $result = mysqli_query($koneksi, $query);
+// ── Navbar: siapkan variabel session ──────────────────────────────────────────
+$nama     = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
+$username = htmlspecialchars($_SESSION['username']     ?? 'guest');
+$role     = htmlspecialchars($_SESSION['nama_role']    ?? '');
+$foto     = !empty($_SESSION['foto_profil'])
+            ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil'])
+            : 'assets/img/profil/default.png';
+
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Master Konversi Satuan - Sistem Resto</title>
+    <title>Master Konversi Satuan</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -37,39 +47,52 @@ $result = mysqli_query($koneksi, $query);
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 
+    <!-- TAMBAHAN: Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
-        .btn-outline-primary-thicker { border-width: 2px !important; font-weight: 500 !important; }
+        /* Desain Select2 biar seragam dengan Bootstrap */
+        .select2-container--default .select2-selection--single {
+            height: calc(2.25rem + 2px); padding: .375rem .75rem; border: 1px solid #ebedf2; border-radius: .25rem;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: calc(2.25rem + 2px); }
     </style>
 </head>
 <body>
-<div class="wrapper">
-    <?php include 'sidebar.php'; ?>
+    <div class="wrapper">
+        <?php include 'sidebar.php'; ?>
 
-    <div class="main-panel">
-        <div class="main-header">
-            <div class="main-header-logo">
-                <div class="logo-header" data-background-color="dark">
-                    <a href="dashboard.php" class="logo">
-                        <img src="assets/img/logo/logo_resto.png" alt="Logo Resto" class="navbar-brand" height="30" />
-                    </a>
-                    <div class="nav-toggle">
-                        <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
-                        <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+
+        <div class="main-panel">
+            <div class="main-header">
+                <!-- Logo Header -->
+                <div class="main-header-logo">
+                    <div class="logo-header" data-background-color="dark">
+                        <a href="dashboard.php" class="logo">
+                            <img src="assets/img/logo/LOGO PT.jpg" alt="Logo PT" class="navbar-brand" height="30" />
+                        </a>
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
+                            <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+                        </div>
+                        <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                     </div>
-                    <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                 </div>
-            </div>
+                <!-- End Logo Header -->
+                <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                         <li class="nav-item topbar-user dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                                 <div class="avatar-sm">
-                                    <img src="assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle" />
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
                                 </div>
                                 <span class="profile-username">
                                     <span class="op-7">Selamat Datang,</span>
-                                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></span>
+                                    <span class="fw-bold"><?= $nama ?></span>
                                 </span>
                             </a>
                             <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -77,18 +100,23 @@ $result = mysqli_query($koneksi, $query);
                                     <li>
                                         <div class="user-box">
                                             <div class="avatar-lg">
-                                                <img src="assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
                                             </div>
                                             <div class="u-text">
-                                                <h4><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></h4>
-                                                <p class="text-muted"><?= htmlspecialchars($_SESSION['username'] ?? 'guest') ?></p>
+                                                <h4><?= $nama ?></h4>
+                                                <p class="text-muted">@<?= $username ?></p>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
                                                 <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
                                             </div>
                                         </div>
                                     </li>
                                     <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
@@ -98,7 +126,8 @@ $result = mysqli_query($koneksi, $query);
                     </ul>
                 </div>
             </nav>
-        </div>
+            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
+            </div>
 
         <div class="container">
             <div class="page-inner">
@@ -111,9 +140,11 @@ $result = mysqli_query($koneksi, $query);
                         <div class="card">
                             <div class="card-header d-flex align-items-center">
                                 <h4 class="card-title">Data Master Konversi Satuan</h4>
+                                <?php if (can_edit()): ?>
                                 <button class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#addKonversiModal">
-                                    <i class="fa fa-plus"></i> Tambah Konversi
+                                    <i class="fa fa-plus"></i> Tambah Data
                                 </button>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body">
                                 <?php if (isset($_GET['msg'])): ?>
@@ -132,7 +163,11 @@ $result = mysqli_query($koneksi, $query);
                                                 <th>Tipe</th>
                                                 <th>Rumus Konversi</th>
                                                 <th>Nilai</th>
-                                                <th style="width: 15%;">Aksi</th>
+                                                
+                                                <?php if (can_edit()): ?>
+                                                    <th style="width: 15%;">Action</th>
+                                                <?php endif; ?>
+                                                
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -153,6 +188,8 @@ $result = mysqli_query($koneksi, $query);
                                                 <td><span class="badge badge-info"><?= $row['tipe_bahan'] ?></span></td>
                                                 <td>1 <b><?= $row['satuan_besar_nama'] ?></b> = ... <b><?= $row['satuan_kecil_nama'] ?></b></td>
                                                 <td class="fw-bold"><?= number_format($row['nilai_konversi']) ?></td>
+                                                
+                                                <?php if (can_edit()): ?>
                                                 <td>
                                                     <div class="form-button-action">
                                                         <button type="button" class="btn btn-primary btn-sm btn-update" 
@@ -169,6 +206,8 @@ $result = mysqli_query($koneksi, $query);
                                                         </button>
                                                     </div>
                                                 </td>
+                                                <?php endif; ?>
+                                                
                                             </tr>
                                         <?php endwhile; ?>
                                         </tbody>
@@ -195,8 +234,9 @@ $result = mysqli_query($koneksi, $query);
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Pilih Item (Bahan)</label>
-                            <select name="pilihan_item" id="pilihan_item_add" class="form-control" required>
-                                <option value="">-- Pilih Item --</option>
+                            <!-- PERBAIKAN: form-select dan style width 100% -->
+                            <select name="pilihan_item" id="pilihan_item_add" class="form-select" style="width: 100%;" required>
+                                <option value=""></option> <!-- Kosongkan teks untuk placeholder Select2 -->
                                 <optgroup label="Bahan Baku">
                                     <?php
                                     $bb = mysqli_query($koneksi, "SELECT b.id_bb, b.nama_bb, s.nama_satuan FROM master_bahan_baku b JOIN master_satuan s ON b.id_satuan = s.id_satuan ORDER BY b.nama_bb ASC");
@@ -219,8 +259,8 @@ $result = mysqli_query($koneksi, $query);
                         
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Satuan Besar</label>
-                            <select name="satuan_besar" id="satuan_besar_add" class="form-control" required>
-                                <option value="">-- Pilih Satuan --</option>
+                            <select name="satuan_besar" id="satuan_besar_add" class="form-select" style="width: 100%;" required>
+                                <option value=""></option>
                                 <?php
                                 $sat = mysqli_query($koneksi, "SELECT * FROM master_satuan ORDER BY nama_satuan ASC");
                                 while($s = mysqli_fetch_assoc($sat)) echo "<option value='{$s['id_satuan']}'>{$s['nama_satuan']}</option>";
@@ -235,8 +275,8 @@ $result = mysqli_query($koneksi, $query);
 
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Satuan Kecil</label>
-                            <select name="satuan_kecil" id="satuan_kecil_add" class="form-control" required>
-                                <option value="">-- Pilih Satuan --</option>
+                            <select name="satuan_kecil" id="satuan_kecil_add" class="form-select" style="width: 100%;" required>
+                                <option value=""></option>
                                 <?php
                                 mysqli_data_seek($sat, 0);
                                 while($s = mysqli_fetch_assoc($sat)) echo "<option value='{$s['id_satuan']}'>{$s['nama_satuan']}</option>";
@@ -272,7 +312,8 @@ $result = mysqli_query($koneksi, $query);
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Satuan Besar</label>
-                            <select name="satuan_besar" id="update_satuan_besar" class="form-control" required>
+                            <select name="satuan_besar" id="update_satuan_besar" class="form-select" style="width: 100%;" required>
+                                <option value=""></option>
                                 <?php
                                 mysqli_data_seek($sat, 0);
                                 while($s = mysqli_fetch_assoc($sat)) echo "<option value='{$s['id_satuan']}'>{$s['nama_satuan']}</option>";
@@ -285,7 +326,8 @@ $result = mysqli_query($koneksi, $query);
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Satuan Kecil</label>
-                            <select name="satuan_kecil" id="update_satuan_kecil" class="form-control" required>
+                            <select name="satuan_kecil" id="update_satuan_kecil" class="form-select" style="width: 100%;" required>
+                                <option value=""></option>
                                 <?php
                                 mysqli_data_seek($sat, 0);
                                 while($s = mysqli_fetch_assoc($sat)) echo "<option value='{$s['id_satuan']}'>{$s['nama_satuan']}</option>";
@@ -321,14 +363,27 @@ $result = mysqli_query($koneksi, $query);
     </div>
 </div>
 
-<script src="assets/js/core/jquery-3.7.1.min.js"></script>
-<script src="assets/js/core/bootstrap.min.js"></script>
-<script src="assets/js/plugin/datatables/datatables.min.js"></script>
-<script src="assets/js/kaiadmin.min.js"></script>
+    <script src="assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/core/popper.min.js"></script>
+    <script src="assets/js/core/bootstrap.min.js"></script>
+    <script src="assets/js/plugin/datatables/datatables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- TAMBAHAN: Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     $(document).ready(function() {
         $('#basic-datatables').DataTable();
+
+        // 1. AKTIVASI SELECT2 MODAL TAMBAH
+        $('#pilihan_item_add').select2({ dropdownParent: $('#addKonversiModal'), placeholder: "-- Cari Item --" });
+        $('#satuan_besar_add').select2({ dropdownParent: $('#addKonversiModal'), placeholder: "-- Cari Satuan Besar --" });
+        $('#satuan_kecil_add').select2({ dropdownParent: $('#addKonversiModal'), placeholder: "-- Cari Satuan Kecil --" });
+
+        // 2. AKTIVASI SELECT2 MODAL UPDATE
+        $('#update_satuan_besar').select2({ dropdownParent: $('#updateKonversiModal'), placeholder: "-- Cari Satuan Besar --" });
+        $('#update_satuan_kecil').select2({ dropdownParent: $('#updateKonversiModal'), placeholder: "-- Cari Satuan Kecil --" });
 
         if ($('.alert-success').length) {
             setTimeout(function() {
@@ -350,7 +405,7 @@ $result = mysqli_query($koneksi, $query);
         });
     });
 
-    // Handler Update
+    // 3. HANDLER UPDATE DIPERBAIKI (.trigger('change'))
     document.querySelectorAll('.btn-update').forEach(button => {
         button.addEventListener('click', function() {
             const d = this.dataset;
@@ -358,8 +413,10 @@ $result = mysqli_query($koneksi, $query);
             document.getElementById('update_nama_item_display').value = d.nama;
             document.getElementById('update_pilihan_item').value = d.pilihan;
             document.getElementById('update_nilai_konversi').value = d.nilai;
-            document.getElementById('update_satuan_besar').value = d.besar;
-            document.getElementById('update_satuan_kecil').value = d.kecil;
+            
+            // Menggunakan jQuery untuk set value dan trigger perubahan tampilan Select2
+            $('#update_satuan_besar').val(d.besar).trigger('change');
+            $('#update_satuan_kecil').val(d.kecil).trigger('change');
 
             new bootstrap.Modal(document.getElementById('updateKonversiModal')).show();
         });

@@ -1,16 +1,14 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
-// 1. Navbar & Session
 $nama = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
 $foto = !empty($_SESSION['foto_profil']) ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil']) : 'assets/img/profil/default.png';
 
-// 2. Tangkap ID Header
 $id_header = $_GET['id'] ?? '';
 if (empty($id_header)) { header("Location: stok_opname.php"); exit(); }
 
-// 3. Ambil data Header & Join Gudang
 $q_h = mysqli_query($koneksi, "SELECT h.*, g.nama_gudang 
                                FROM header_opname h 
                                JOIN master_gudang g ON h.id_gudang = g.id_gudang 
@@ -18,38 +16,52 @@ $q_h = mysqli_query($koneksi, "SELECT h.*, g.nama_gudang
 $d_h = mysqli_fetch_assoc($q_h);
 if (!$d_h) { header("Location: stok_opname.php"); exit(); }
 
-// 4. Query Detail (Gabungkan BB & BSJ dengan konversi satuan terbesar)
+// =========================================================================
+// LOGIKA GUDANG CERDAS UNTUK DETAIL TAMPILAN
+// =========================================================================
+$is_gudang_utama = ($d_h['id_gudang'] == 1);
+
+if ($is_gudang_utama) {
+    $satuan_pilih = "COALESCE(sat_b.nama_satuan, sat_default.nama_satuan)";
+    $konversi_val = "COALESCE(k.nilai_konversi, 1)";
+} else {
+    $satuan_pilih = "COALESCE(sat_k.nama_satuan, sat_default.nama_satuan)";
+    $konversi_val = "1";
+}
+
 $sql_detail = "(SELECT 'BB' as tipe, b.kode_bb as kode, b.nama_bb as nama_item, 
-                       IFNULL(sat_b.nama_satuan, sat_k.nama_satuan) as satuan, 
-                       d.stok_sistem / IFNULL(k.nilai_konversi, 1) as sistem, 
-                       d.stok_fisik / IFNULL(k.nilai_konversi, 1) as fisik, 
-                       d.selisih / IFNULL(k.nilai_konversi, 1) as selisih
+                       $satuan_pilih as satuan, 
+                       d.stok_sistem / $konversi_val as sistem, 
+                       d.stok_fisik / $konversi_val as fisik, 
+                       d.selisih / $konversi_val as selisih
                 FROM detail_opname d
                 JOIN master_bahan_baku b ON d.id_bb = b.id_bb
-                JOIN master_satuan sat_k ON b.id_satuan = sat_k.id_satuan
+                JOIN master_satuan sat_default ON b.id_satuan = sat_default.id_satuan
                 LEFT JOIN master_konversi k ON b.id_bb = k.id_komponen AND k.tipe_bahan = 'BB'
                 LEFT JOIN master_satuan sat_b ON k.satuan_besar = sat_b.id_satuan
+                LEFT JOIN master_satuan sat_k ON k.satuan_kecil = sat_k.id_satuan
                 WHERE d.id_header_opname = '$id_header')
                UNION
                (SELECT 'BSJ' as tipe, b.kode_bsj as kode, b.nama_bsj as nama_item, 
-                       IFNULL(sat_b.nama_satuan, sat_k.nama_satuan) as satuan, 
-                       d.stok_sistem / IFNULL(k.nilai_konversi, 1) as sistem, 
-                       d.stok_fisik / IFNULL(k.nilai_konversi, 1) as fisik, 
-                       d.selisih / IFNULL(k.nilai_konversi, 1) as selisih
+                       $satuan_pilih as satuan, 
+                       d.stok_sistem / $konversi_val as sistem, 
+                       d.stok_fisik / $konversi_val as fisik, 
+                       d.selisih / $konversi_val as selisih
                 FROM detail_opname d
                 JOIN master_bahan_setengah_jadi b ON d.id_bsj = b.id_bsj
-                JOIN master_satuan sat_k ON b.id_satuan = sat_k.id_satuan
+                JOIN master_satuan sat_default ON b.id_satuan = sat_default.id_satuan
                 LEFT JOIN master_konversi k ON b.id_bsj = k.id_komponen AND k.tipe_bahan = 'BSJ'
                 LEFT JOIN master_satuan sat_b ON k.satuan_besar = sat_b.id_satuan
+                LEFT JOIN master_satuan sat_k ON k.satuan_kecil = sat_k.id_satuan
                 WHERE d.id_header_opname = '$id_header')";
 $q_detail = mysqli_query($koneksi, $sql_detail);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Stok Opname</title>
+    <title>Detail Opname - SI Resto</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -74,57 +86,21 @@ $q_detail = mysqli_query($koneksi, $sql_detail);
 
     <div class="main-panel">
         <div class="main-header">
-            <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                         <li class="nav-item topbar-user dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                <div class="avatar-sm">
-                                    <img src="<?= $foto ?>"
-                                         alt="Foto Profil"
-                                         class="avatar-img rounded-circle"
-                                         onerror="this.src='assets/img/profil/default.png'" />
-                                </div>
-                                <span class="profile-username">
-                                    <span class="op-7">Selamat Datang,</span>
-                                    <span class="fw-bold"><?= $nama ?></span>
-                                </span>
+                                <div class="avatar-sm"><img src="<?= $foto ?>" class="avatar-img rounded-circle" /></div>
+                                <span class="profile-username"><span class="op-7">Selamat Datang,</span> <span class="fw-bold"><?= $nama ?></span></span>
                             </a>
                             <ul class="dropdown-menu dropdown-user animated fadeIn">
-                                <div class="dropdown-user-scroll scrollbar-outer">
-                                    <li>
-                                        <div class="user-box">
-                                            <div class="avatar-lg">
-                                                <img src="<?= $foto ?>"
-                                                     alt="Foto Profil"
-                                                     class="avatar-img rounded"
-                                                     onerror="this.src='assets/img/profil/default.png'" />
-                                            </div>
-                                            <div class="u-text">
-                                                <h4><?= $nama ?></h4>
-                                                <p class="text-muted">@<?= $username ?></p>
-                                                <?php if (!empty($role)): ?>
-                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
-                                                <?php endif; ?>
-                                                <br>
-                                                <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="../logout.php">Logout</a>
-                                    </li>
-                                </div>
+                                <li><a class="dropdown-item" href="../logout.php">Logout</a></li>
                             </ul>
                         </li>
                     </ul>
                 </div>
             </nav>
-            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
         </div>
 
         <div class="container">
@@ -146,7 +122,7 @@ $q_detail = mysqli_query($koneksi, $sql_detail);
                         <div class="row mb-4 p-3 bg-light rounded shadow-none border">
                             <div class="col-md-3">
                                 <label class="text-muted small mb-0">Tanggal Pelaksanaan</label>
-                                <h6 class="fw-bold mb-0"><?= date('d/m/Y', strtotime($d_h['tgl_opname'])) ?></h6>
+                                <h6 class="fw-bold mb-0"><?= date('d M Y', strtotime($d_h['tgl_opname'])) ?></h6>
                             </div>
                             <div class="col-md-3 border-start">
                                 <label class="text-muted small mb-0">Lokasi Gudang</label>
@@ -154,7 +130,7 @@ $q_detail = mysqli_query($koneksi, $sql_detail);
                             </div>
                             <div class="col-md-6 border-start">
                                 <label class="text-muted small mb-0">Keterangan</label>
-                                <h6 class="fw-bold mb-0 text-muted italic"><?= htmlspecialchars($d_h['keterangan'] ?: '-') ?></h6>
+                                <h6 class="fw-bold mb-0 text-muted fst-italic"><?= htmlspecialchars($d_h['keterangan'] ?: '-') ?></h6>
                             </div>
                         </div>
 
@@ -173,9 +149,10 @@ $q_detail = mysqli_query($koneksi, $sql_detail);
                                 </thead>
                                 <tbody>
                                     <?php $no=1; while($row = mysqli_fetch_assoc($q_detail)): 
-                                        $sistem  = round($row['sistem'], 2);
-                                        $fisik   = round($row['fisik'], 2);
-                                        $selisih = round($row['selisih'], 2);
+                                        // Filter koma nol nol
+                                        $sistem  = (float)round($row['sistem'], 2);
+                                        $fisik   = (float)round($row['fisik'], 2);
+                                        $selisih = (float)round($row['selisih'], 2);
                                     ?>
                                     <tr>
                                         <td class="text-center text-muted small"><?= $no++ ?></td>
@@ -192,10 +169,10 @@ $q_detail = mysqli_query($koneksi, $sql_detail);
                                             <?php elseif($selisih < 0): ?>
                                                 <span class="text-danger"><?= $selisih ?></span>
                                             <?php else: ?>
-                                                <span class="text-dark">0.00</span>
+                                                <span class="text-dark">0</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="text-center text-muted small"><?= $row['satuan'] ?></td>
+                                        <td class="text-center text-muted small"><?= htmlspecialchars($row['satuan']) ?></td>
                                     </tr>
                                     <?php endwhile; ?>
                                 </tbody>
@@ -207,8 +184,11 @@ $q_detail = mysqli_query($koneksi, $sql_detail);
         </div>
     </div>
 </div>
+    <script src="assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/core/popper.min.js"></script>
+    <script src="assets/js/core/bootstrap.min.js"></script>
+    <script src="assets/js/plugin/datatables/datatables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script src="assets/js/core/jquery-3.7.1.min.js"></script>
-<script src="assets/js/core/bootstrap.min.js"></script>
 </body>
 </html>

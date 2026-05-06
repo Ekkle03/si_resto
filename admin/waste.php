@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // Query ambil data riwayat waste, join ke gudang dan karyawan sesuai database terbaru
@@ -97,8 +98,6 @@ $foto = !empty($_SESSION['foto_profil'])
                                     </li>
                                     <li>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                        <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
                                 </div>
@@ -139,7 +138,7 @@ $foto = !empty($_SESSION['foto_profil'])
                                                 <th>KODE WASTE</th>
                                                 <th>GUDANG</th>
                                                 <th>TGL LAPOR</th>
-                                                <th>PELAPOR</th>
+                                                <th>KARYAWAN</th>
                                                 <th style="width: 100px;">ACTION</th>
                                             </tr>
                                         </thead>

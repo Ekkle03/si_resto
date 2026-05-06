@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // 1. Navbar & Session
@@ -24,36 +25,56 @@ $nama_gudang = $d_h['nama_gudang'];
 $kode_opn    = $d_h['kode_opname'];
 $tgl_opname  = $d_h['tgl_opname'];
 
-// 4. Query Tarik Stok (Logika Satuan Otomatis - Tidak ada lagi "Belum Konversi")
+// =========================================================================
+// 4. LOGIKA GUDANG CERDAS (PERBAIKAN NAMA SATUAN KECIL)
+// =========================================================================
+$is_gudang_utama = ($id_gudang == 1);
+
+if ($is_gudang_utama) {
+    // Gudang Utama: Pakai Konversi Satuan Besar
+    $satuan_pilih = "COALESCE(sat_b.nama_satuan, sat_default.nama_satuan)";
+    $stok_hitung  = "(s.jumlah / COALESCE(k.nilai_konversi, 1))";
+    $konversi_val = "COALESCE(k.nilai_konversi, 1)";
+} else {
+    // Gudang Oprasional/Produksi: Murni Satuan Kecil dari Master Konversi
+    $satuan_pilih = "COALESCE(sat_k.nama_satuan, sat_default.nama_satuan)";
+    $stok_hitung  = "s.jumlah";
+    $konversi_val = "1"; // Konversi 1 agar saat disimpan tidak terkalikan lagi
+}
+
 $sql_stok = "(SELECT 'BB' as tipe, s.id_bb as id_item, b.nama_bb as nama_item, 
-              IFNULL(sat_b.nama_satuan, sat_k.nama_satuan) as nama_satuan, 
-              (s.jumlah / IFNULL(k.nilai_konversi, 1)) as stok_sistem,
-              IFNULL(k.nilai_konversi, 1) as konversi
+              $satuan_pilih as nama_satuan, 
+              $stok_hitung as stok_sistem,
+              $konversi_val as konversi
               FROM stok_bahan s 
               JOIN master_bahan_baku b ON s.id_bb = b.id_bb 
-              JOIN master_satuan sat_k ON b.id_satuan = sat_k.id_satuan
+              JOIN master_satuan sat_default ON b.id_satuan = sat_default.id_satuan
               LEFT JOIN master_konversi k ON b.id_bb = k.id_komponen AND k.tipe_bahan = 'BB'
               LEFT JOIN master_satuan sat_b ON k.satuan_besar = sat_b.id_satuan
+              LEFT JOIN master_satuan sat_k ON k.satuan_kecil = sat_k.id_satuan
               WHERE s.id_gudang = '$id_gudang')
              UNION
              (SELECT 'BSJ' as tipe, s.id_bsj as id_item, b.nama_bsj as nama_item, 
-              IFNULL(sat_b.nama_satuan, sat_k.nama_satuan) as nama_satuan, 
-              (s.jumlah / IFNULL(k.nilai_konversi, 1)) as stok_sistem,
-              IFNULL(k.nilai_konversi, 1) as konversi
+              $satuan_pilih as nama_satuan, 
+              $stok_hitung as stok_sistem,
+              $konversi_val as konversi
               FROM stok_bahan s 
               JOIN master_bahan_setengah_jadi b ON s.id_bsj = b.id_bsj 
-              JOIN master_satuan sat_k ON b.id_satuan = sat_k.id_satuan
+              JOIN master_satuan sat_default ON b.id_satuan = sat_default.id_satuan
               LEFT JOIN master_konversi k ON b.id_bsj = k.id_komponen AND k.tipe_bahan = 'BSJ'
               LEFT JOIN master_satuan sat_b ON k.satuan_besar = sat_b.id_satuan
+              LEFT JOIN master_satuan sat_k ON k.satuan_kecil = sat_k.id_satuan
               WHERE s.id_gudang = '$id_gudang')";
 $q_stok = mysqli_query($koneksi, $sql_stok);
+
+$role = htmlspecialchars($_SESSION['nama_role'] ?? '');
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Stok Opname</title>
+    <title>Input Opname - SI Resto</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -78,57 +99,21 @@ $q_stok = mysqli_query($koneksi, $sql_stok);
 
     <div class="main-panel">
         <div class="main-header">
-            <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                         <li class="nav-item topbar-user dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                <div class="avatar-sm">
-                                    <img src="<?= $foto ?>"
-                                         alt="Foto Profil"
-                                         class="avatar-img rounded-circle"
-                                         onerror="this.src='assets/img/profil/default.png'" />
-                                </div>
-                                <span class="profile-username">
-                                    <span class="op-7">Selamat Datang,</span>
-                                    <span class="fw-bold"><?= $nama ?></span>
-                                </span>
+                                <div class="avatar-sm"><img src="<?= $foto ?>" class="avatar-img rounded-circle" /></div>
+                                <span class="profile-username"><span class="op-7">Selamat Datang,</span> <span class="fw-bold"><?= $nama ?></span></span>
                             </a>
                             <ul class="dropdown-menu dropdown-user animated fadeIn">
-                                <div class="dropdown-user-scroll scrollbar-outer">
-                                    <li>
-                                        <div class="user-box">
-                                            <div class="avatar-lg">
-                                                <img src="<?= $foto ?>"
-                                                     alt="Foto Profil"
-                                                     class="avatar-img rounded"
-                                                     onerror="this.src='assets/img/profil/default.png'" />
-                                            </div>
-                                            <div class="u-text">
-                                                <h4><?= $nama ?></h4>
-                                                <p class="text-muted">@<?= $username ?></p>
-                                                <?php if (!empty($role)): ?>
-                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
-                                                <?php endif; ?>
-                                                <br>
-                                                <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="../logout.php">Logout</a>
-                                    </li>
-                                </div>
+                                <li><a class="dropdown-item" href="../logout.php">Logout</a></li>
                             </ul>
                         </li>
                     </ul>
                 </div>
             </nav>
-            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
         </div>
 
         <div class="container">
@@ -173,12 +158,13 @@ $q_stok = mysqli_query($koneksi, $sql_stok);
                                         while($row = mysqli_fetch_assoc($q_stok)): 
                                             $i++;
                                             $id_input = $row['tipe'] . "-" . $row['id_item'];
-                                            $val_sistem = round($row['stok_sistem'], 2);
+                                            // Mematikan .00 agar rapi (cth: 2.00 jadi 2)
+                                            $val_sistem = (float)round($row['stok_sistem'], 2);
                                         ?>
                                         <tr>
                                             <td class="align-middle">
                                                 <span class="fw-bold text-dark"><?= $row['nama_item'] ?></span><br>
-                                                <small class="text-muted"><?= $row['nama_satuan'] ?></small>
+                                                <small class="text-muted"><?= htmlspecialchars($row['nama_satuan']) ?></small>
                                                 <input type="hidden" name="items[<?= $i ?>][id_raw]" value="<?= $id_input ?>">
                                                 <input type="hidden" name="items[<?= $i ?>][stok_sistem]" value="<?= $val_sistem ?>">
                                                 <input type="hidden" name="items[<?= $i ?>][konversi]" value="<?= $row['konversi'] ?>">
@@ -197,7 +183,7 @@ $q_stok = mysqli_query($koneksi, $sql_stok);
                                                        data-id="<?= $i ?>" placeholder="0" required>
                                             </td>
                                             <td class="text-center align-middle">
-                                                <span id="diff_<?= $i ?>" class="fw-bold">0.00</span>
+                                                <span id="diff_<?= $i ?>" class="fw-bold">0</span>
                                             </td>
                                         </tr>
                                         <?php endwhile; ?>
@@ -213,8 +199,9 @@ $q_stok = mysqli_query($koneksi, $sql_stok);
 </div>
 
 <script src="assets/js/core/jquery-3.7.1.min.js"></script>
-<script src="assets/js/plugin/datatables/datatables.min.js"></script>
+<script src="assets/js/core/popper.min.js"></script>
 <script src="assets/js/core/bootstrap.min.js"></script>
+<script src="assets/js/plugin/datatables/datatables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -230,10 +217,16 @@ $q_stok = mysqli_query($koneksi, $sql_stok);
             let selisih = fisik - sistem;
             let diffElement = $('#diff_' + id);
             
-            diffElement.text(selisih.toFixed(2));
-            if (selisih > 0) { diffElement.removeClass('text-danger text-dark').addClass('text-success').text('+' + selisih.toFixed(2)); }
-            else if (selisih < 0) { diffElement.removeClass('text-success text-dark').addClass('text-danger').text(selisih.toFixed(2)); }
-            else { diffElement.removeClass('text-success text-danger').addClass('text-dark').text('0.00'); }
+            // Format angka rapi tanpa .00
+            let viewSelisih = parseFloat(selisih.toFixed(2));
+
+            if (selisih > 0) { 
+                diffElement.removeClass('text-danger text-dark').addClass('text-success').text('+' + viewSelisih); 
+            } else if (selisih < 0) { 
+                diffElement.removeClass('text-success text-dark').addClass('text-danger').text(viewSelisih); 
+            } else { 
+                diffElement.removeClass('text-success text-danger').addClass('text-dark').text('0'); 
+            }
         }
 
         $(document).on('change', '.check-sesuai', function() {
@@ -264,11 +257,11 @@ $q_stok = mysqli_query($koneksi, $sql_stok);
         });
     });
 
-    // Fungsi BATAL
+    // Fungsi BATAL Fix
     function confirmBatal(id) {
         Swal.fire({
-            title: 'Batalkan Transaksi?',
-            text: "Data yang sudah dibuat akan dihapus!",
+            title: 'Batalkan Opname?',
+            text: "Nota ini akan dihapus karena belum diproses!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -277,7 +270,6 @@ $q_stok = mysqli_query($koneksi, $sql_stok);
             cancelButtonText: 'Lanjut Input'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Langsung hapus nota booking
                 window.location.href = "delete_opname.php?id=" + id;
             }
         })

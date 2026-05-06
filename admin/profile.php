@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 $id_login = $_SESSION['id_karyawan'] ?? $_SESSION['id_user'] ?? null;
@@ -27,6 +28,14 @@ $alamat   = $user['alamat']       ?? '-';
 $foto_db  = $user['foto_profil']  ?? '';
 
 $foto_path = (!empty($foto_db)) ? 'assets/img/profil/' . $foto_db : 'assets/img/profil/default.png';
+
+// ── Navbar: siapkan variabel session ──────────────────────────────────────────
+$nama     = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
+$username = htmlspecialchars($_SESSION['username']     ?? 'guest');
+$role     = htmlspecialchars($_SESSION['nama_role']    ?? '');
+$foto     = !empty($_SESSION['foto_profil'])
+            ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil'])
+            : 'assets/img/profil/default.png';
 ?>
 
 <!DOCTYPE html>
@@ -130,13 +139,54 @@ $foto_path = (!empty($foto_db)) ? 'assets/img/profil/' . $foto_db : 'assets/img/
 
         <div class="main-panel">
             <div class="main-header">
-                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-                    <div class="container-fluid">
-                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item"><span class="fw-bold text-dark">Informasi Akun</span></li>
-                        </ul>
-                    </div>
-                </nav>
+                <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
+            <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                <div class="container-fluid">
+                    <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                        <li class="nav-item topbar-user dropdown hidden-caret">
+                            <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                                <div class="avatar-sm">
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
+                                </div>
+                                <span class="profile-username">
+                                    <span class="op-7">Selamat Datang,</span>
+                                    <span class="fw-bold"><?= $nama ?></span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                <div class="dropdown-user-scroll scrollbar-outer">
+                                    <li>
+                                        <div class="user-box">
+                                            <div class="avatar-lg">
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
+                                            </div>
+                                            <div class="u-text">
+                                                <h4><?= $nama ?></h4>
+                                                <p class="text-muted">@<?= $username ?></p>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="../logout.php">Logout</a>
+                                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
             </div>
 
             <div class="container">
@@ -194,7 +244,10 @@ $foto_path = (!empty($foto_db)) ? 'assets/img/profil/' . $foto_db : 'assets/img/
     </div>
 
     <script src="assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/core/popper.min.js"></script>
     <script src="assets/js/core/bootstrap.min.js"></script>
+    <script src="assets/js/plugin/datatables/datatables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/kaiadmin.min.js"></script>
 </body>
 </html>

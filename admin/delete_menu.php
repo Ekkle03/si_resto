@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // 1. Pastikan ada ID yang dikirim lewat URL
@@ -11,7 +12,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 $id = (int)$_GET['id'];
 
 // 2. Mulai proses penghapusan
-// Kita hapus dulu "anak-anaknya" (Resep/BOM) agar tidak melanggar relasi database
+// Kita hapus dulu "anak-anaknya" (BOM) agar tidak melanggar relasi database
 $query_bom = "DELETE FROM master_bom WHERE id_induk = '$id' AND tipe_bom = 'MENU'";
 $hapus_bom = mysqli_query($koneksi, $query_bom);
 

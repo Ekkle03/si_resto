@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // 1. Ambil data history import
@@ -19,7 +20,7 @@ $foto     = !empty($_SESSION['foto_profil'])
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Menu Terjual - Sistem Resto</title>
+    <title>Menu Terjual</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -108,8 +109,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                         </div>
                                     </li>
                                     <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
@@ -268,7 +267,7 @@ $foto     = !empty($_SESSION['foto_profil'])
 <script>
     $(document).ready(function() {
         $('#table-history').DataTable({
-            "order": [[ 0, "desc" ]]
+            "order": []
         });
 
         if (window.location.search.indexOf('msg=') > -1) {

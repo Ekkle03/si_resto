@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // 1. Parameter Filter
@@ -78,29 +79,55 @@ $foto     = !empty($_SESSION['foto_profil'])
                         <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                     </div>
                 </div>
-                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-                    <div class="container-fluid">
-                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-user dropdown hidden-caret">
-                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                    <div class="avatar-sm"><img src="<?= $foto ?>" alt="Foto Profil" class="avatar-img rounded-circle" onerror="this.src='assets/img/profil/default.png'" /></div>
-                                    <span class="profile-username"><span class="op-7">Selamat Datang,</span> <span class="fw-bold"><?= $nama ?></span></span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-user animated fadeIn">
-                                    <div class="dropdown-user-scroll scrollbar-outer">
-                                        <li>
-                                            <div class="user-box">
-                                                <div class="avatar-lg"><img src="<?= $foto ?>" alt="Foto Profil" class="avatar-img rounded" onerror="this.src='assets/img/profil/default.png'" /></div>
-                                                <div class="u-text"><h4><?= $nama ?></h4><p class="text-muted">@<?= $username ?></p><?php if (!empty($role)): ?><span class="badge bg-secondary mb-2"><?= $role ?></span><?php endif; ?><br><a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a></div>
+                <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
+            <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                <div class="container-fluid">
+                    <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                        <li class="nav-item topbar-user dropdown hidden-caret">
+                            <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                                <div class="avatar-sm">
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
+                                </div>
+                                <span class="profile-username">
+                                    <span class="op-7">Selamat Datang,</span>
+                                    <span class="fw-bold"><?= $nama ?></span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                <div class="dropdown-user-scroll scrollbar-outer">
+                                    <li>
+                                        <div class="user-box">
+                                            <div class="avatar-lg">
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
                                             </div>
-                                        </li>
-                                        <li><div class="dropdown-divider"></div><a class="dropdown-item" href="#">Pengaturan Akun</a><div class="dropdown-divider"></div><a class="dropdown-item" href="../logout.php">Logout</a></li>
-                                    </div>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
+                                            <div class="u-text">
+                                                <h4><?= $nama ?></h4>
+                                                <p class="text-muted">@<?= $username ?></p>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
+                                                <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="../logout.php">Logout</a>
+                                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
             </div>
 
             <div class="container">
@@ -266,9 +293,9 @@ $foto     = !empty($_SESSION['foto_profil'])
                                             }
 
                                             $sql_log = "SELECT l.* FROM log_stok l 
-                                                        WHERE l.$col_id_log = '$id_item' AND l.id_gudang = '$id_gudang' 
-                                                        AND DATE(l.tgl_log) BETWEEN '$tgl_awal' AND '$tgl_akhir' 
-                                                        ORDER BY l.tgl_log DESC, l.id_log DESC";
+                                                WHERE l.$col_id_log = '$id_item' AND l.id_gudang = '$id_gudang' 
+                                                AND DATE(l.tgl_log) BETWEEN '$tgl_awal' AND '$tgl_akhir' 
+                                                ORDER BY l.tgl_log ASC, l.id_log ASC"; // <-- Ubah jadi ASC (Ascending)
                                             $q_log = mysqli_query($koneksi, $sql_log);
                                             
                                             while($log = mysqli_fetch_assoc($q_log)): 
@@ -313,18 +340,30 @@ $foto     = !empty($_SESSION['foto_profil'])
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
     <script>
-        $(document).ready(function() {
-            $('#table-stok').DataTable({
-                "order": [] 
-            });
-            
-            $('.select2-search').select2({ 
-                theme: "default", 
-                width: '100%', 
-                placeholder: "-- Tampilkan Ringkasan Semua --", 
-                allowClear: true 
-            });
+    $(document).ready(function() {
+        // PERBAIKAN: Ubah jadi '#table-stok' agar fitur Next/Previous aktif
+        $('#table-stok').DataTable({
+            "order": [], // Biarkan urutan sesuai dengan dari database
+            "pageLength": 10, // Menampilkan 10 baris aja biar gak kepanjangan
+            "bLengthChange": true,
+            "bInfo": true
         });
-    </script>
+        
+        // (Opsional) Kalau kamu punya tabel detail dengan ID '-detail', biarkan ini tetap ada
+        $('#table-stok-detail').DataTable({
+            "order": [], 
+            "pageLength": 25, 
+            "bLengthChange": true,
+            "bInfo": true
+        });
+        
+        $('.select2-search').select2({ 
+            theme: "default", 
+            width: '100%', 
+            placeholder: "-- Tampilkan Ringkasan Semua --", 
+            allowClear: true 
+        });
+    });
+</script>
 </body>
 </html>

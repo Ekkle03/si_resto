@@ -68,13 +68,13 @@ function is_active($pages, $current_page) {
                 <li class="nav-item <?= is_active(['pembelian.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>pembelian.php">
                         <i class="fas fa-shopping-cart"></i>
-                        <p>Pembelian</p>
+                        <p>Rencana Pembelian</p>
                     </a>
                 </li>
                 <li class="nav-item <?= is_active(['penerimaan.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>penerimaan.php">
                         <i class="fas fa-boxes"></i>
-                        <p>Penerimaan Barang</p>
+                        <p>Penerimaan Bahan</p>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -83,13 +83,13 @@ function is_active($pages, $current_page) {
                 <li class="nav-item <?= is_active(['produksi.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>produksi.php">
                         <i class="fas fa-blender"></i>
-                        <p>Produksi 1 (BSJ)</p>
+                        <p>Produksi Bertahap </p>
                     </a>
                 </li>
                 <li class="nav-item <?= is_active(['produksi_langsung.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>produksi_langsung.php">
                         <i class="fas fa-fire"></i>
-                        <p>Produksi 2 (Menu)</p>
+                        <p>Produksi Olahan Dasar</p>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -135,7 +135,7 @@ function is_active($pages, $current_page) {
                     </a>
                 </li>
 
-                <?php if (in_array($user_role, ['admin', 'owner'])): ?>
+                <?php if (in_array($user_role, ['owner'])): ?>
                 <li class="nav-item <?= is_active(['laporan_waste.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>laporan/laporan_waste.php">
                         <i class="fas fa-chart-bar"></i>
@@ -145,7 +145,7 @@ function is_active($pages, $current_page) {
                 <li class="nav-item <?= is_active(['laporan_bom.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>laporan/laporan_bom.php">
                         <i class="fas fa-chart-pie"></i>
-                        <p>Laporan BOM</p>
+                        <p>Laporan Pemakaian B</p>
                     </a>
                 </li>
                 <?php endif; ?>

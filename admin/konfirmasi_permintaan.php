@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 $id_h = isset($_GET['id']) ? (int)$_GET['id'] : 0;

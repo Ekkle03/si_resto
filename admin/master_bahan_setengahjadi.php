@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 // 1. Ambil ID Induk Kategori BSJ (Pastikan Nama Kategori di DB sama persis)
@@ -14,13 +15,22 @@ $sql = "SELECT bsj.*, s.nama_satuan, k.nama_kategori
         INNER JOIN master_kategori k ON bsj.id_kategori = k.id_kategori
         ORDER BY bsj.id_bsj ASC";
 $result = mysqli_query($koneksi, $sql);
+
+// ── Navbar: siapkan variabel session ──────────────────────────────────────────
+$nama     = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
+$username = htmlspecialchars($_SESSION['username']     ?? 'guest');
+$role     = htmlspecialchars($_SESSION['nama_role']    ?? '');
+$foto     = !empty($_SESSION['foto_profil'])
+            ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil'])
+            : 'assets/img/profil/default.png';
+
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Master Bahan Setengah Jadi - Sistem Resto</title>
+    <title>Master Bahan Setengah Jadi</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -41,39 +51,53 @@ $result = mysqli_query($koneksi, $sql);
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 
+    <!-- TAMBAHAN: Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
-        .btn-outline-primary-thicker { border-width: 2px !important; font-weight: 500 !important; }
+        /* Desain Select2 biar seragam dengan form Bootstrap bawaan */
+        .select2-container--default .select2-selection--single {
+            height: calc(2.25rem + 2px); padding: .375rem .75rem; border: 1px solid #ebedf2; border-radius: .25rem;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: calc(2.25rem + 2px); }
+        .select2-container .select2-selection--single .select2-selection__rendered { padding-left: 0; }
     </style>
 </head>
 <body>
-<div class="wrapper">
-    <?php include 'sidebar.php'; ?>
+    <div class="wrapper">
+        <?php include 'sidebar.php'; ?>
 
-    <div class="main-panel">
-        <div class="main-header">
-            <div class="main-header-logo">
-                <div class="logo-header" data-background-color="dark">
-                    <a href="dashboard.php" class="logo">
-                        <img src="assets/img/logo/logo_resto.png" alt="Logo Resto" class="navbar-brand" height="30" />
-                    </a>
-                    <div class="nav-toggle">
-                        <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
-                        <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+
+        <div class="main-panel">
+            <div class="main-header">
+                <!-- Logo Header -->
+                <div class="main-header-logo">
+                    <div class="logo-header" data-background-color="dark">
+                        <a href="dashboard.php" class="logo">
+                            <img src="assets/img/logo/LOGO PT.jpg" alt="Logo PT" class="navbar-brand" height="30" />
+                        </a>
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar"><i class="gg-menu-right"></i></button>
+                            <button class="btn btn-toggle sidenav-toggler"><i class="gg-menu-left"></i></button>
+                        </div>
+                        <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                     </div>
-                    <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                 </div>
-            </div>
+                <!-- End Logo Header -->
+                <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                         <li class="nav-item topbar-user dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                                 <div class="avatar-sm">
-                                    <img src="assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle" />
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
                                 </div>
                                 <span class="profile-username">
                                     <span class="op-7">Selamat Datang,</span>
-                                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></span>
+                                    <span class="fw-bold"><?= $nama ?></span>
                                 </span>
                             </a>
                             <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -81,18 +105,23 @@ $result = mysqli_query($koneksi, $sql);
                                     <li>
                                         <div class="user-box">
                                             <div class="avatar-lg">
-                                                <img src="assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
                                             </div>
                                             <div class="u-text">
-                                                <h4><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></h4>
-                                                <p class="text-muted"><?= htmlspecialchars($_SESSION['username'] ?? 'guest') ?></p>
+                                                <h4><?= $nama ?></h4>
+                                                <p class="text-muted">@<?= $username ?></p>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
                                                 <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
                                             </div>
                                         </div>
                                     </li>
                                     <li>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#">Pengaturan Akun</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="../logout.php">Logout</a>
                                     </li>
@@ -102,7 +131,8 @@ $result = mysqli_query($koneksi, $sql);
                     </ul>
                 </div>
             </nav>
-        </div>
+            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
+            </div>
 
         <div class="container">
             <div class="page-inner">
@@ -115,9 +145,11 @@ $result = mysqli_query($koneksi, $sql);
                         <div class="card">
                             <div class="card-header d-flex align-items-center">
                                 <h4 class="card-title">Data Master BSJ</h4>
+                                <?php if (can_edit()): ?>
                                 <button class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#addBsjModal">
                                     <i class="fa fa-plus"></i> Tambah Data
                                 </button>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body">
                                 <?php if (isset($_GET['msg'])): ?>
@@ -138,7 +170,9 @@ $result = mysqli_query($koneksi, $sql);
                                                 <th>KATEGORI</th>
                                                 <th>MIN. STOK</th>
                                                 <th>TAHAP</th>
-                                                <th>ACTION</th>
+                                                <?php if (can_edit()): ?>
+                                                    <th>ACTION</th>
+                                                <?php endif; ?>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -156,6 +190,8 @@ $result = mysqli_query($koneksi, $sql);
                                                         <?= $row['tahap'] === 'bsj2' ? 'Tahap 2' : 'Tahap 1' ?>
                                                     </span>
                                                 </td>
+                                                
+                                                <?php if (can_edit()): ?>
                                                 <td>
                                                     <div class="form-button-action">
                                                         <button type="button" class="btn btn-primary btn-sm btn-update me-1"
@@ -172,6 +208,8 @@ $result = mysqli_query($koneksi, $sql);
                                                         </button>
                                                     </div>
                                                 </td>
+                                                <?php endif; ?>
+                                                
                                             </tr>
                                         <?php endwhile; ?>
                                         </tbody>
@@ -203,8 +241,9 @@ $result = mysqli_query($koneksi, $sql);
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Satuan</label>
-                        <select class="form-select" name="id_satuan" required>
-                            <option value="" disabled selected>-- Pilih Satuan --</option>
+                        <!-- PERBAIKAN: Form-select, ID, style width -->
+                        <select class="form-select" name="id_satuan" id="add_id_satuan" style="width: 100%;" required>
+                            <option value=""></option> <!-- Kosongkan untuk placeholder -->
                             <?php
                             $satuan = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
                             while ($s = mysqli_fetch_assoc($satuan)) {
@@ -215,7 +254,9 @@ $result = mysqli_query($koneksi, $sql);
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-primary fw-bold">Kategori</label>
-                        <select class="form-select" name="id_kategori" required>
+                        <!-- PERBAIKAN: Form-select, ID, style width -->
+                        <select class="form-select" name="id_kategori" id="add_id_kategori" style="width: 100%;" required>
+                            <option value=""></option>
                             <?php
                             // Ambil ID induk Bahan Setengah Jadi
                             $query_induk_up = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'Bahan Setengah Jadi' LIMIT 1");
@@ -230,8 +271,8 @@ $result = mysqli_query($koneksi, $sql);
                                 </option>
                             <?php endwhile; ?>
                         </select>
-                        <div class="mb-3">
-                            <label class="form-label">Stok Minimal (Trigger Produksi)</label>
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">Stok Minimal</label>
                             <input type="number" step="0.01" class="form-control" name="stok_minimal_bsj" id="<?= (strpos($row['id_bsj'] ?? '', 'update') !== false) ? 'update_stok_minimal_bsj' : '' ?>" required>
                         </div>
                     </div>
@@ -277,7 +318,9 @@ $result = mysqli_query($koneksi, $sql);
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Satuan</label>
-                        <select class="form-select" name="id_satuan" id="update_id_satuan" required>
+                        <!-- PERBAIKAN: style width -->
+                        <select class="form-select" name="id_satuan" id="update_id_satuan" style="width: 100%;" required>
+                            <option value=""></option>
                             <?php
                             $satuan2 = mysqli_query($koneksi, "SELECT id_satuan, nama_satuan FROM master_satuan ORDER BY nama_satuan ASC");
                             while ($s2 = mysqli_fetch_assoc($satuan2)): ?>
@@ -289,7 +332,9 @@ $result = mysqli_query($koneksi, $sql);
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Kategori</label>
-                        <select class="form-select" name="id_kategori" id="update_id_kategori" required>
+                        <!-- PERBAIKAN: style width -->
+                        <select class="form-select" name="id_kategori" id="update_id_kategori" style="width: 100%;" required>
+                            <option value=""></option>
                             <?php
                             // Cari ID induk Bahan Setengah Jadi
                             $q_induk = mysqli_query($koneksi, "SELECT id_kategori FROM master_kategori WHERE nama_kategori = 'Bahan Setengah Jadi' LIMIT 1");
@@ -305,9 +350,9 @@ $result = mysqli_query($koneksi, $sql);
                                 </option>
                             <?php endwhile; ?>
                         </select>
-                        <div class="mb-3">
+                        <div class="mb-3 mt-3">
                             <label class="form-label">Stok Minimal (Trigger Produksi)</label>
-                            <input type="number" step="0.01" class="form-control" name="stok_minimal_bsj" id="<?= (strpos($row['id_bsj'] ?? '', 'update') !== false) ? 'update_stok_minimal_bsj' : '' ?>" required>
+                            <input type="number" step="0.01" class="form-control" name="stok_minimal_bsj" id="update_stok_minimal_bsj" required>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -345,17 +390,28 @@ $result = mysqli_query($koneksi, $sql);
     </div>
 </div>
 
-<script src="assets/js/core/jquery-3.7.1.min.js"></script>
-<script src="assets/js/core/popper.min.js"></script>
-<script src="assets/js/core/bootstrap.min.js"></script>
-<script src="assets/js/plugin/datatables/datatables.min.js"></script>
-<script src="assets/js/kaiadmin.min.js"></script>
+    <script src="assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/core/popper.min.js"></script>
+    <script src="assets/js/core/bootstrap.min.js"></script>
+    <script src="assets/js/plugin/datatables/datatables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- TAMBAHAN: Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     $(document).ready(function () {
         $('#basic-datatables').DataTable();
 
-        // 1. Auto-hide alert
+        // 1. AKTIVASI SELECT2 MODAL TAMBAH
+        $('#add_id_satuan').select2({ dropdownParent: $('#addBsjModal'), placeholder: "-- Cari Satuan --" });
+        $('#add_id_kategori').select2({ dropdownParent: $('#addBsjModal'), placeholder: "-- Cari Kategori --" });
+
+        // 2. AKTIVASI SELECT2 MODAL UPDATE
+        $('#update_id_satuan').select2({ dropdownParent: $('#updateBsjModal'), placeholder: "-- Cari Satuan --" });
+        $('#update_id_kategori').select2({ dropdownParent: $('#updateBsjModal'), placeholder: "-- Cari Kategori --" });
+
+        // Auto-hide alert
         if ($('.alert').length) {
             setTimeout(function () {
                 $('.alert').fadeOut('slow', function () {
@@ -364,32 +420,30 @@ $result = mysqli_query($koneksi, $sql);
             }, 3000);
         }
 
-        // 2. Update Data (Event Delegation)
+        // 3. Update Data (Event Delegation dengan trigger change)
         $(document).on('click', '.btn-update', function() {
             var ds = $(this).data();
             
             $('#update_id_bsj').val(ds.id_bsj);
             $('#update_nama_bsj').val(ds.nama_bsj);
-            $('#update_id_satuan').val(ds.id_satuan);
             
-            // Mengatur kategori: JS akan mencari value yang sama dengan ID di tabel
-            // Karena PHP di atas sudah kita batasi hanya 'Bumbu', 
-            // maka kategori 'Bahan Baku' tidak akan bisa terpilih di sini.
+            // Trigger change agar tampilan dropdown Select2 merespon
+            $('#update_id_satuan').val(ds.id_satuan).trigger('change');
             $('#update_id_kategori').val(ds.id_kategori).trigger('change');
-            $('#update_stok_minimal_bsj').val(ds.stok_minimal_bsj);
             
+            $('#update_stok_minimal_bsj').val(ds.stok_minimal_bsj);
             $('#update_tahap').val(ds.tahap);
             $('#updateBsjModal').modal('show');
         });
 
-        // 3. Delete Data
+        // 4. Delete Data
         $(document).on('click', '.btn-delete', function() {
             var id = $(this).data('id_bsj');
             $('#confirmDeleteLink').attr('href', 'delete_bahan_setengahjadi.php?id=' + id);
             $('#confirmDeleteModal').modal('show');
         });
 
-        // 4. Logika Checkbox BOM di Modal Add
+        // 5. Logika Checkbox BOM di Modal Add
         $(document).on('change', '#langsung_bom', function() {
             var btn = $('#btnSubmitAdd');
             if ($(this).is(':checked')) {

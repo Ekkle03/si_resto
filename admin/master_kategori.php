@@ -1,7 +1,7 @@
 <?php
 // Mulai session di awal
 session_start();
-
+include("../config/auth.php");
 // Hubungkan ke database
 include("../config/koneksi_mysql.php");
 
@@ -10,12 +10,20 @@ $query = "SELECT * FROM master_kategori
           ORDER BY (CASE WHEN parent_id = 0 THEN id_kategori ELSE parent_id END) ASC, 
           parent_id ASC";
 $result = mysqli_query($koneksi, $query);
+
+// ── Navbar: siapkan variabel session ──────────────────────────────────────────
+$nama     = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
+$username = htmlspecialchars($_SESSION['username']     ?? 'guest');
+$role     = htmlspecialchars($_SESSION['nama_role']    ?? '');
+$foto     = !empty($_SESSION['foto_profil'])
+            ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil'])
+            : 'assets/img/profil/default.png';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Master Divisi - Sistem Resto</title>
+    <title>Master Kategori</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -67,45 +75,55 @@ $result = mysqli_query($koneksi, $query);
                         <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                     </div>
                 </div>
-                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-                    <div class="container-fluid">
-                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <li class="nav-item topbar-user dropdown hidden-caret">
-                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                                    <div class="avatar-sm">
-                                        <img src="assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle" />
-                                    </div>
-                                    <span class="profile-username">
-                                        <span class="op-7">Selamat Datang,</span>
-                                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></span>
-                                    </span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-user animated fadeIn">
-                                    <div class="dropdown-user-scroll scrollbar-outer">
-                                        <li>
-                                            <div class="user-box">
-                                                <div class="avatar-lg">
-                                                    <img src="assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
-                                                </div>
-                                                <div class="u-text">
-                                                    <h4><?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest') ?></h4>
-                                                    <p class="text-muted"><?= htmlspecialchars($_SESSION['username'] ?? 'guest') ?></p>
-                                                    <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
-                                                </div>
+                <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
+            <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                <div class="container-fluid">
+                    <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+                        <li class="nav-item topbar-user dropdown hidden-caret">
+                            <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                                <div class="avatar-sm">
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
+                                </div>
+                                <span class="profile-username">
+                                    <span class="op-7">Selamat Datang,</span>
+                                    <span class="fw-bold"><?= $nama ?></span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                <div class="dropdown-user-scroll scrollbar-outer">
+                                    <li>
+                                        <div class="user-box">
+                                            <div class="avatar-lg">
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
                                             </div>
-                                        </li>
-                                        <li>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Pengaturan Akun</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="../logout.php">Logout</a>
-                                        </li>
-                                    </div>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
+                                            <div class="u-text">
+                                                <h4><?= $nama ?></h4>
+                                                <p class="text-muted">@<?= $username ?></p>
+                                                <?php if (!empty($role)): ?>
+                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
+                                                <?php endif; ?>
+                                                <br>
+                                                <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="../logout.php">Logout</a>
+                                    </li>
+                                </div>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
             </div>
 
             <div class="container">
@@ -119,12 +137,14 @@ $result = mysqli_query($koneksi, $query);
                                 <div class="card-header d-flex align-items-center">
                                     <h4 class="card-title">Data Master Kategori</h4>
                                     <div class="ms-auto">
+                                        <?php if (can_edit()): ?>
                                         <button class="btn btn-primary btn-round me-2" data-bs-toggle="modal" data-bs-target="#addKategoriModal">
                                             <i class="fa fa-plus"></i> Kategori Utama
                                         </button>
                                         <button class="btn btn-outline-primary btn-outline-primary-thicker btn-round" data-bs-toggle="modal" data-bs-target="#addSubKategoriModal">
                                             <i class="fas fa-level-down-alt"></i> Sub-Kategori
                                         </button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -142,7 +162,9 @@ $result = mysqli_query($koneksi, $query);
                                                     <th style="width: 8%;" class="text-center">No</th>
                                                     <th style="width: 20%;" class="text-center">Kode Kategori</th>
                                                     <th class="text-center">Nama Kategori</th>
+                                                    <?php if (can_edit()): ?>
                                                     <th style="width: 20%;" class="text-center">Action</th>
+                                                    <?php endif; ?>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -160,6 +182,8 @@ $result = mysqli_query($koneksi, $query);
                                                         <?php endif; ?>
                                                         <?= htmlspecialchars($row['nama_kategori']) ?>
                                                     </td>
+                                                    
+                                                    <?php if (can_edit()): ?>
                                                     <td class="text-center">
                                                         <div class="form-button-action">
                                                             <button type="button" class="btn btn-primary btn-sm btn-update"
@@ -173,6 +197,8 @@ $result = mysqli_query($koneksi, $query);
                                                             </button>
                                                         </div>
                                                     </td>
+                                                    <?php endif; ?>
+
                                                 </tr>
                                                 <?php endwhile; ?>
                                             </tbody>

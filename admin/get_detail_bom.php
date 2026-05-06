@@ -48,7 +48,7 @@ if ($tipe == 'BSJ') {
         <div class="d-flex justify-content-between align-items-center">
             <span class="fw-bold text-primary"><i class="fas fa-bullseye me-2"></i> Target Hasil Resep:</span>
             <span class="badge bg-primary px-3 py-2" style="font-size: 14px;">
-                '.$target_hasil.' '.htmlspecialchars($satuan_produk).'
+                '.(float)$target_hasil.' '.htmlspecialchars($satuan_produk).'
             </span>
         </div>
     </div>';

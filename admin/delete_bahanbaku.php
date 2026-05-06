@@ -1,5 +1,6 @@
 <?php
 session_start();
+include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
 if (!isset($_GET['id']) || $_GET['id'] === '' || !ctype_digit($_GET['id'])) {

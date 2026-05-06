@@ -1,7 +1,7 @@
 <?php
 session_start();
 include("../config/koneksi_mysql.php");
-
+include("../config/auth.php");
 // Hanya boleh POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: master_kategori.php");
