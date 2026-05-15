@@ -152,7 +152,7 @@ $foto_user = !empty($_SESSION['foto_profil'])
                                             <th width="5%">NO</th>
                                             <th width="25%">PRODUK (HASIL PRODUKSI)</th>
                                             <th width="35%">KOMPONEN BAHAN BAKU / BSJ</th>
-                                            <th width="15%">KEBUTUHAN RESEP</th>
+                                            <th width="15%">KEBUTUHAN BOM</th>
                                             <th width="20%">TOTAL PEMAKAIAN</th>
                                         </tr>
                                     </thead>
@@ -262,7 +262,7 @@ $foto_user = !empty($_SESSION['foto_profil'])
                                                                         </div>";
                                                     }
                                                 } else {
-                                                    $html_bahan = "<div class='inner-row text-muted fst-italic'>Resep belum diatur</div>";
+                                                    $html_bahan = "<div class='inner-row text-muted fst-italic'>BOM belum diatur</div>";
                                                     $html_kebutuhan = "<div class='inner-row-center text-muted'>-</div>";
                                                     $html_total = "<div class='inner-row-center text-muted'>-</div>";
                                                 }

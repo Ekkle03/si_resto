@@ -28,14 +28,13 @@ $foto     = !empty($_SESSION['foto_profil'])
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Waste</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
-    <!-- Fonts and icons -->
     <script src="assets/js/plugin/webfont/webfont.min.js"></script>
     <script>
         WebFont.load({
@@ -47,7 +46,6 @@ $foto     = !empty($_SESSION['foto_profil'])
         });
     </script>
 
-    <!-- CSS Files -->
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
@@ -87,6 +85,16 @@ $foto     = !empty($_SESSION['foto_profil'])
         }
 
         .select2-container .select2-selection--single { height: 40px !important; display: flex; align-items: center; border: 1px solid #ebedef; }
+
+        /* Percantik tombol upload file di HP */
+        input[type="file"]::file-selector-button {
+            padding: 4px 10px;
+            margin-right: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -107,17 +115,13 @@ $foto     = !empty($_SESSION['foto_profil'])
                     <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                 </div>
             </div>
-            <!-- ── NAVBAR DIPERBAIKI ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                         <li class="nav-item topbar-user dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                                 <div class="avatar-sm">
-                                    <img src="<?= $foto ?>"
-                                         alt="Foto Profil"
-                                         class="avatar-img rounded-circle"
-                                         onerror="this.src='assets/img/profil/default.png'" />
+                                    <img src="<?= $foto ?>" alt="Foto Profil" class="avatar-img rounded-circle" onerror="this.src='assets/img/profil/default.png'" />
                                 </div>
                                 <span class="profile-username">
                                     <span class="op-7">Selamat Datang,</span>
@@ -129,17 +133,12 @@ $foto     = !empty($_SESSION['foto_profil'])
                                     <li>
                                         <div class="user-box">
                                             <div class="avatar-lg">
-                                                <img src="<?= $foto ?>"
-                                                     alt="Foto Profil"
-                                                     class="avatar-img rounded"
-                                                     onerror="this.src='assets/img/profil/default.png'" />
+                                                <img src="<?= $foto ?>" alt="Foto Profil" class="avatar-img rounded" onerror="this.src='assets/img/profil/default.png'" />
                                             </div>
                                             <div class="u-text">
                                                 <h4><?= $nama ?></h4>
                                                 <p class="text-muted">@<?= $username ?></p>
-                                                <?php if (!empty($role)): ?>
-                                                    <span class="badge bg-secondary mb-2"><?= $role ?></span>
-                                                <?php endif; ?>
+                                                <?php if (!empty($role)): ?><span class="badge bg-secondary mb-2"><?= $role ?></span><?php endif; ?>
                                                 <br>
                                                 <a href="profile.php" class="btn btn-xs btn-secondary btn-sm">Lihat Profil</a>
                                             </div>
@@ -155,9 +154,9 @@ $foto     = !empty($_SESSION['foto_profil'])
                     </ul>
                 </div>
             </nav>
-            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
+            </div>
 
-            <div class="container">
+        <div class="container">
             <div class="page-inner">
                 
                 <div class="page-header d-flex justify-content-between align-items-center mb-4">
@@ -174,6 +173,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                         </a>
                     </div>
                 </div>
+
                 <div class="card card-round mb-4 border-0 shadow-sm">
                     <div class="card-header-info">
                         <div class="row text-center">
@@ -199,26 +199,26 @@ $foto     = !empty($_SESSION['foto_profil'])
 
                     <div class="card card-round shadow-sm border-0">
                         <div class="card-header bg-white">
-                            <div class="d-flex align-items-center">
-                                <h4 class="card-title fw-bold" style="font-size: 16px;">Daftar Item Waste</h4>
-                            </div>
+                            <h4 class="card-title fw-bold" style="font-size: 16px;">Daftar Item Waste</h4>
                         </div>
+                        
                         <div class="table-responsive">
-                            <table class="table table-hover table-detail mb-0">
-                                <thead>
+                            <table class="table table-hover table-detail mb-0" style="min-width: 950px;">
+                                <thead class="bg-light">
                                     <tr>
-                                        <th style="width: 25%">Nama Barang</th>
-                                        <th style="width: 15%">Alasan</th>
-                                        <th style="width: 12%">Qty</th>
-                                        <th style="width: 10%">Satuan</th>
-                                        <th style="width: 15%">Keterangan</th>
-                                        <th style="width: 18%">Foto Bukti</th>
-                                        <th style="width: 5%">#</th>
+                                        <th style="width: 250px;">Nama Barang</th>
+                                        <th style="width: 150px;">Alasan</th>
+                                        <th style="width: 100px;">Qty</th>
+                                        <th style="width: 80px;" class="text-center">Satuan</th>
+                                        <th style="width: 150px;">Keterangan</th>
+                                        <th style="width: 170px;">Foto Bukti</th>
+                                        <th style="width: 50px;" class="text-center">#</th>
                                     </tr>
                                 </thead>
                                 <tbody id="row_container"></tbody>
                             </table>
                         </div>
+
                         <div class="card-footer bg-light p-3">
                             <button type="button" class="btn btn-primary btn-round btn-sm" id="btn_tambah_baris">
                                 <i class="fa fa-plus me-1"></i> Tambah Baris Baru
@@ -262,7 +262,9 @@ $(document).ready(function() {
             <td><input type="number" step="any" id="qty_${rowCount}" name="items[${rowCount}][qty]" class="form-control input-qty" placeholder="0" required></td>
             <td class="align-middle text-center"><span id="label_satuan_${rowCount}" class="fw-bold text-dark" style="font-size: 13px;">-</span></td>
             <td><input type="text" name="items[${rowCount}][keterangan_item]" class="form-control" placeholder="Catatan..."></td>
+            
             <td><input type="file" name="foto_${rowCount}" class="form-control form-control-sm" accept="image/*" required></td>
+            
             <td class="text-center"><button type="button" class="btn btn-link btn-danger remove_row"><i class="fa fa-trash"></i></button></td>
         </tr>`;
         
@@ -332,6 +334,7 @@ $(document).ready(function() {
         }
     });
 
+    // Pancing baris pertama otomatis
     $('#btn_tambah_baris').click();
     
     $(document).on('click', '.remove_row', function() {

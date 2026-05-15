@@ -26,7 +26,7 @@ $foto     = !empty($_SESSION['foto_profil'])
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Permintaan Bahan - Sistem Resto</title>
+    <title>Permintaan Barang</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -44,6 +44,10 @@ $foto     = !empty($_SESSION['foto_profil'])
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
+
+    <style>
+        .btn-outline-primary-thicker { border-width: 2px !important; font-weight: 500 !important; }
+    </style>
 </head>
 <body>
 <div class="wrapper">
@@ -69,7 +73,10 @@ $foto     = !empty($_SESSION['foto_profil'])
                         <li class="nav-item topbar-user dropdown hidden-caret">
                             <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                                 <div class="avatar-sm">
-                                    <img src="<?= $foto ?>" alt="Foto Profil" class="avatar-img rounded-circle" onerror="this.src='assets/img/profil/default.png'" />
+                                    <img src="<?= $foto ?>"
+                                         alt="Foto Profil"
+                                         class="avatar-img rounded-circle"
+                                         onerror="this.src='assets/img/profil/default.png'" />
                                 </div>
                                 <span class="profile-username">
                                     <span class="op-7">Selamat Datang,</span>
@@ -81,7 +88,10 @@ $foto     = !empty($_SESSION['foto_profil'])
                                     <li>
                                         <div class="user-box">
                                             <div class="avatar-lg">
-                                                <img src="<?= $foto ?>" alt="Foto Profil" class="avatar-img rounded" onerror="this.src='assets/img/profil/default.png'" />
+                                                <img src="<?= $foto ?>"
+                                                     alt="Foto Profil"
+                                                     class="avatar-img rounded"
+                                                     onerror="this.src='assets/img/profil/default.png'" />
                                             </div>
                                             <div class="u-text">
                                                 <h4><?= $nama ?></h4>
@@ -104,7 +114,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                     </ul>
                 </div>
             </nav>
-        </div>
+            </div>
 
         <div class="container">
             <div class="page-inner">
