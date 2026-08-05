@@ -22,7 +22,7 @@ if (isset($_POST['simpan_permanen'])) {
     $q_max = mysqli_query($koneksi, "SELECT MAX(id_bom) as max_id FROM master_bom");
     $d_max = mysqli_fetch_assoc($q_max);
     $next_id = ($d_max['max_id'] ?? 0) + 1;
-    $kode_bom = "BOM-" . $tipe_bom . "-" . str_pad($next_id, 3, '0', STR_PAD_LEFT);
+    $kode_bom = "RCP-" . $tipe_bom . "-" . str_pad($next_id, 3, '0', STR_PAD_LEFT);
 
     mysqli_begin_transaction($koneksi);
 

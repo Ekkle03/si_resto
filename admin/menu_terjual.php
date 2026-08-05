@@ -213,7 +213,6 @@ $foto     = !empty($_SESSION['foto_profil'])
                                        value="<?= date('Y-m-d') ?>" 
                                        min="<?= date('Y-m-d', strtotime('-1 days')) ?>" 
                                        max="<?= date('Y-m-d') ?>">
-                                <small class="text-muted">Gunakan tanggal closing laporan tersebut (Maks H-1).</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="fw-bold">Pilih File CSV</label>

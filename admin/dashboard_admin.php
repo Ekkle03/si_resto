@@ -311,7 +311,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                                     <div class="d-grid gap-2">
                                         <a href="master_karyawan.php" class="btn btn-light btn-sm text-start fw-bold"><i class="fas fa-user-plus text-primary me-2"></i> Kelola Karyawan</a>
                                         <a href="master_menu.php" class="btn btn-light btn-sm text-start fw-bold"><i class="fas fa-utensils text-primary me-2"></i> Kelola Master Menu</a>
-                                        <a href="laporan/laporan_bom.php" class="btn btn-light btn-sm text-start fw-bold"><i class="fas fa-chart-pie text-danger me-2"></i> Cek Laporan BOM</a>
+                                        <a href="laporan/laporan_bom.php" class="btn btn-light btn-sm text-start fw-bold"><i class="fas fa-chart-pie text-danger me-2"></i> Cek Laporan Resep</a>
                                         <a href="master_gudang.php" class="btn btn-light btn-sm text-start fw-bold"><i class="fas fa-boxes text-success me-2"></i> Master Gudang</a>
                                     </div>
                                 </div>

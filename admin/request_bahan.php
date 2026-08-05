@@ -25,7 +25,7 @@ $query_bsj = mysqli_query($koneksi, $sql_bsj);
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>BOM - Sistem Resto</title>
+    <title>Sistem Resto</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -192,11 +192,13 @@ $query_bsj = mysqli_query($koneksi, $sql_bsj);
             </div>
         </div>
     </div>
-
-    <script src="assets/js/core/jquery-3.7.1.min.js"></script>
-    <script src="assets/js/core/bootstrap.min.js"></script>
-    <script src="assets/js/plugin/datatables/datatables.min.js"></script>
-    <script src="assets/js/kaiadmin.min.js"></script>
+<script src="assets/js/core/jquery-3.7.1.min.js"></script>
+<script src="assets/js/core/popper.min.js"></script>
+<script src="assets/js/core/bootstrap.min.js"></script>
+<script src="assets/js/plugin/datatables/datatables.min.js"></script>
+<script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+<script src="assets/js/kaiadmin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             $('.datatable').DataTable({ "pageLength": 5 });

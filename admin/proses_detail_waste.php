@@ -6,11 +6,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Ambil ID Header Waste
     $id_header = mysqli_real_escape_string($koneksi, $_POST['id_header_waste']);
     
-    // Ambil info gudang untuk menentukan perlu konversi balik atau tidak
-    $q_h = mysqli_query($koneksi, "SELECT id_gudang, kode_waste FROM header_waste WHERE id_header_waste = '$id_header'");
+    // --- PERBAIKAN: Ambil status_validasi sekalian dari header ---
+    $q_h = mysqli_query($koneksi, "SELECT id_gudang, kode_waste, status_validasi FROM header_waste WHERE id_header_waste = '$id_header'");
     $d_h = mysqli_fetch_assoc($q_h);
     $id_gudang  = $d_h['id_gudang'];
     $kode_waste = $d_h['kode_waste'];
+    $status_val = $d_h['status_validasi']; // Nilainya 'Pending' atau 'Disetujui'
 
     // Siapkan folder upload foto bukti
     $target_dir = "../assets/img/waste/";
@@ -50,38 +51,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             move_uploaded_file($_FILES[$file_key]['tmp_name'], $target_dir . $foto_db);
         }
 
-        // 2. Simpan ke detail_waste
+        // 2. Simpan ke detail_waste (SELALU DIJALANKAN, baik Pending maupun Disetujui)
         $sql_detail = "INSERT INTO detail_waste (id_header_waste, $col_target, qty_waste, alasan, foto_bukti, sumber) 
                        VALUES ('$id_header', '$real_id', '$qty_final', '$alasan', '$foto_db', 'Manual')";
         mysqli_query($koneksi, $sql_detail);
 
-        // 3. Potong Stok di kartu stok bahan
-        $sql_update_stok = "UPDATE stok_bahan SET jumlah = jumlah - $qty_final 
-                            WHERE $col_target = '$real_id' AND id_gudang = '$id_gudang'";
-        mysqli_query($koneksi, $sql_update_stok);
+        // --- LOGIKA MAKER-CHECKER (POTONG STOK JIKA DISETUJUI SAJA) ---
+        if ($status_val === 'Disetujui') {
+            
+            // 3. Potong Stok di kartu stok bahan
+            $sql_update_stok = "UPDATE stok_bahan SET jumlah = jumlah - $qty_final 
+                                WHERE $col_target = '$real_id' AND id_gudang = '$id_gudang'";
+            mysqli_query($koneksi, $sql_update_stok);
 
-        // 4. Ambil sisa stok terbaru untuk log
-        $q_sisa = mysqli_query($koneksi, "SELECT jumlah FROM stok_bahan WHERE $col_target = '$real_id' AND id_gudang = '$id_gudang'");
-        $d_sisa = mysqli_fetch_assoc($q_sisa);
-        $sisa_sekarang = $d_sisa['jumlah'] ?? 0;
+            // 4. Ambil sisa stok terbaru untuk log
+            $q_sisa = mysqli_query($koneksi, "SELECT jumlah FROM stok_bahan WHERE $col_target = '$real_id' AND id_gudang = '$id_gudang'");
+            $d_sisa = mysqli_fetch_assoc($q_sisa);
+            $sisa_sekarang = $d_sisa['jumlah'] ?? 0;
 
-        // --- MERAPIKAN KETERANGAN LOG ---
-        $alasan_tampil = ($alasan === 'Lainnya') ? $ket : $alasan;
-        $keterangan_log = "Waste: " . $kode_waste . " (" . $alasan_tampil . ")";
+            // --- MERAPIKAN KETERANGAN LOG ---
+            $alasan_tampil = ($alasan === 'Lainnya') ? $ket : $alasan;
+            $keterangan_log = "Waste: " . $kode_waste . " (" . $alasan_tampil . ")";
 
-        // 5. Masukkan ke log_stok dengan kolom yang spesifik (BB atau BSJ)
-        if ($tipe == 'BB') {
-            $sql_log = "INSERT INTO log_stok (id_bb, id_bsj, qty_masuk, qty_keluar, jenis_mutasi, id_gudang, sisa_stok, keterangan, tgl_log) 
-                        VALUES ('$real_id', NULL, 0, '$qty_final', 'Waste', '$id_gudang', '$sisa_sekarang', '$keterangan_log', NOW())";
-        } else {
-            $sql_log = "INSERT INTO log_stok (id_bb, id_bsj, qty_masuk, qty_keluar, jenis_mutasi, id_gudang, sisa_stok, keterangan, tgl_log) 
-                        VALUES (NULL, '$real_id', 0, '$qty_final', 'Waste', '$id_gudang', '$sisa_sekarang', '$keterangan_log', NOW())";
+            // 5. Masukkan ke log_stok dengan kolom yang spesifik (BB atau BSJ)
+            if ($tipe == 'BB') {
+                $sql_log = "INSERT INTO log_stok (id_bb, id_bsj, qty_masuk, qty_keluar, jenis_mutasi, id_gudang, sisa_stok, keterangan, tgl_log) 
+                            VALUES ('$real_id', NULL, 0, '$qty_final', 'Waste', '$id_gudang', '$sisa_sekarang', '$keterangan_log', NOW())";
+            } else {
+                $sql_log = "INSERT INTO log_stok (id_bb, id_bsj, qty_masuk, qty_keluar, jenis_mutasi, id_gudang, sisa_stok, keterangan, tgl_log) 
+                            VALUES (NULL, '$real_id', 0, '$qty_final', 'Waste', '$id_gudang', '$sisa_sekarang', '$keterangan_log', NOW())";
+            }
+            mysqli_query($koneksi, $sql_log);
         }
-        mysqli_query($koneksi, $sql_log);
+        // ----------------------------------------------------------------
     }
 
-    // Redirect dengan status sukses untuk notifikasi otomatis di waste.php
-    header("Location: waste.php?status=success&msg=" . urlencode("Transaksi Waste $kode_waste Berhasil Disimpan!"));
+    // --- PERBAIKAN: Notifikasi dinamis berdasarkan status ---
+    $msg = ($status_val === 'Disetujui') 
+            ? "Waste $kode_waste Berhasil Disimpan & Stok Dipotong." 
+            : "Laporan $kode_waste Berhasil Dikirim, Menunggu Validasi Purchasing.";
+            
+    header("Location: waste.php?status=success&msg=" . urlencode($msg));
     exit();
 } else {
     header("Location: waste.php");

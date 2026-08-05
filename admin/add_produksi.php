@@ -14,6 +14,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 1. Menangkap inputan jumlah BOM dari form
     $qty_bom_input = floatval($_POST['qty_bom_input']);
     
+    // --- PERBAIKAN: SATPAM VALIDASI TANGGAL (MIN HARI INI, MAX 1 BULAN) ---
+    $tgl_pilih = $_POST['tgl_produksi'];
+    $tgl_min = date('Y-m-d');
+    $tgl_max = date('Y-m-d', strtotime('+1 month'));
+
+    if ($tgl_pilih < $tgl_min) {
+        $_SESSION['flash_msg'] = "Gagal: Tanggal produksi tidak boleh sebelum hari ini!";
+        header("Location: produksi.php");
+        exit();
+    } elseif ($tgl_pilih > $tgl_max) {
+        $_SESSION['flash_msg'] = "Gagal: Tanggal produksi maksimal 1 bulan ke depan!";
+        header("Location: produksi.php");
+        exit();
+    }
+    // ----------------------------------------------------------------------
+    
     // GABUNGIN TANGGAL DARI FORM DENGAN JAM SAAT INI (Biar urutan tabel akurat)
     $tgl_input = $_POST['tgl_produksi'] . ' ' . date('H:i:s'); 
     

@@ -38,7 +38,7 @@ if (isset($_POST['id_produksi'])) {
     try {
         // --- 2. POTONG BAHAN BAKU / BSJ BAHAN DI GUDANG PRODUKSI (ID 5) ---
         $q_bom = mysqli_query($koneksi, "SELECT * FROM master_bom WHERE id_induk = '$id_bsj_utama' AND tipe_bom = 'BSJ'");
-        if (mysqli_num_rows($q_bom) == 0) throw new Exception("Resep (BOM) tidak ditemukan.");
+        if (mysqli_num_rows($q_bom) == 0) throw new Exception("Resep tidak ditemukan.");
 
         while ($row = mysqli_fetch_assoc($q_bom)) {
             // Hitung kebutuhan berdasarkan porsi/sachet yang dibuat

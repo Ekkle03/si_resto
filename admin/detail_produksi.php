@@ -40,7 +40,7 @@ if (!$produksi_header) {
     exit;
 }
 
-// Ambil data detail resep (BOM)
+// Ambil data detail resep 
 $bom_detail = [];
 $id_item_produksi = $produksi_header['id_item'];
 $sql_detail = "
@@ -209,7 +209,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                             </div>
                         </div>
 
-                        <!-- CARD 2: RINCIAN RESEP (BOM) -->
+                        <!-- CARD 2: RINCIAN RESEP  -->
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title">Rincian Bill of Material</div>
@@ -227,7 +227,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                                         </thead>
                                         <tbody>
                                             <?php if (empty($bom_detail)): ?>
-                                                <tr><td colspan="3" class="text-center text-muted py-4">BOM untuk item ini belum diatur di Master BOM.</td></tr>
+                                                <tr><td colspan="3" class="text-center text-muted py-4">Resep untuk item ini belum diatur di Master Resep.</td></tr>
                                             <?php else: 
                                                 $no = 1;
                                                 foreach($bom_detail as $item): 

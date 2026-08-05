@@ -21,6 +21,10 @@ $role = htmlspecialchars($_SESSION['nama_role'] ?? '');
 $foto = !empty($_SESSION['foto_profil']) 
         ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil']) 
         : 'assets/img/profil/default.png';
+
+// --- LOGIKA BATAS TANGGAL WASTE ---
+$tgl_maksimal = date('Y-m-d'); // Maksimal hari ini (tidak bisa input masa depan)
+// ----------------------------------
 ?>
 
 <!DOCTYPE html>
@@ -139,11 +143,14 @@ $foto = !empty($_SESSION['foto_profil'])
                                                 <th>GUDANG</th>
                                                 <th>TGL LAPOR</th>
                                                 <th>KARYAWAN</th>
-                                                <th style="width: 100px;">ACTION</th>
+                                                <th>STATUS</th> <th style="width: 120px;">ACTION</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php $no=1; while($row = mysqli_fetch_assoc($q_riwayat)): ?>
+                                            <?php $no=1; while($row = mysqli_fetch_assoc($q_riwayat)): 
+                                                // Default fallback untuk data lama
+                                                $status_val = $row['status_validasi'] ?? 'Disetujui';
+                                            ?>
                                             <tr>
                                                 <td class="text-center text-muted"><?= $no++ ?></td>
                                                 <td class="text-dark fw-bold text-center"><?= $row['kode_waste'] ?></td>
@@ -151,7 +158,20 @@ $foto = !empty($_SESSION['foto_profil'])
                                                 <td class="text-center"><?= date('d/m/Y', strtotime($row['tgl_waste'])) ?></td>
                                                 <td class="text-center"><?= $row['nama_lengkap'] ?></td>
                                                 <td class="text-center">
+                                                    <?php if($status_val == 'Pending'): ?>
+                                                        <span class="badge bg-warning text-dark shadow-sm"><i class="fa fa-clock"></i> Pending</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-success shadow-sm"><i class="fa fa-check"></i> Disetujui</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td class="text-center">
                                                     <div class="form-button-action justify-content-center">
+                                                        <?php if($status_val == 'Pending' && in_array(strtolower($role), ['admin', 'purchasing', 'owner'])): ?>
+                                                            <button type="button" class="btn btn-link btn-success p-1" onclick="validasiWaste(<?= $row['id_header_waste'] ?>, '<?= $row['kode_waste'] ?>')" title="Validasi & Potong Stok">
+                                                                <i class="fa fa-check-double"></i>
+                                                            </button>
+                                                        <?php endif; ?>
+
                                                         <a href="waste_detail.php?id=<?= $row['id_header_waste'] ?>" class="btn btn-link btn-primary p-1" title="Lihat Detail">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
@@ -187,14 +207,22 @@ $foto = !empty($_SESSION['foto_profil'])
                         <label class="fw-bold">Pilih Lokasi Gudang</label>
                         <select name="id_gudang" class="form-select" required>
                             <option value="">-- Pilih Gudang --</option>
-                            <?php mysqli_data_seek($q_gudang, 0); while($g = mysqli_fetch_assoc($q_gudang)): ?>
+                            <?php 
+                            mysqli_data_seek($q_gudang, 0); 
+                            while($g = mysqli_fetch_assoc($q_gudang)): 
+                                // LOGIKA FILTER GUDANG UTAMA UNTUK STAF
+                                if (strtolower($role) === 'staf' && $g['id_gudang'] == '1') {
+                                    continue; // Skip Gudang Utama
+                                }
+                            ?>
                                 <option value="<?= $g['id_gudang'] ?>"><?= $g['nama_gudang'] ?></option>
                             <?php endwhile; ?>
                         </select>
                     </div>
                     <div class="form-group mb-3">
                         <label class="fw-bold">Tanggal Kejadian</label>
-                        <input type="date" name="tgl_waste" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                        <input type="date" name="tgl_waste" class="form-control fw-bold text-primary bg-light" value="<?= $tgl_maksimal ?>" readonly required>
+                        <small class="text-muted d-block mt-1">* Tanggal kejadian otomatis tercatat hari ini.</small>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
@@ -207,6 +235,7 @@ $foto = !empty($_SESSION['foto_profil'])
 </div>
 
 <script src="assets/js/core/jquery-3.7.1.min.js"></script>
+<script src="assets/js/core/popper.min.js"></script>
 <script src="assets/js/core/bootstrap.min.js"></script>
 <script src="assets/js/plugin/datatables/datatables.min.js"></script>
 <script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
@@ -218,7 +247,7 @@ $(document).ready(function() {
     $('#basic-datatables').DataTable({
         "order": [],
         "columnDefs": [
-            { "orderable": false, "targets": [5] }
+            { "orderable": false, "targets": [6] }
         ]
     });
 
@@ -233,6 +262,18 @@ $(document).ready(function() {
             message: msg ? msg : 'Data berhasil disimpan',
         },{
             type: 'success',
+            placement: { from: "top", align: "right" },
+            time: 1000, delay: 3000, 
+        });
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (status === 'error') {
+        $.notify({
+            icon: 'fa fa-times-circle',
+            title: 'Gagal!',
+            message: msg ? msg : 'Terjadi kesalahan',
+        },{
+            type: 'danger',
             placement: { from: "top", align: "right" },
             time: 1000, delay: 3000, 
         });
@@ -257,6 +298,22 @@ function confirmDelete(id, kode) {
     }).then((result) => {
         if (result.isConfirmed) {
             window.location.href = "delete_waste.php?id=" + id;
+        }
+    });
+}
+
+function validasiWaste(id, kode) {
+    Swal.fire({
+        title: 'Validasi Waste ' + kode + '?',
+        text: "Setelah divalidasi, stok barang di gudang akan otomatis terpotong!",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fa fa-check"></i> Ya, Setujui & Potong Stok!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "validasi_waste.php?id=" + id;
         }
     });
 }

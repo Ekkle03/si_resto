@@ -51,7 +51,7 @@ if ($stmt) {
     mysqli_stmt_bind_param($stmt, "siis", $kode_menu, $id_satuan, $id_kategori, $nama_menu);
 
     if (mysqli_stmt_execute($stmt)) {
-        // Ambil ID yang baru saja masuk untuk keperluan redirect ke BOM
+        // Ambil ID yang baru saja masuk untuk keperluan redirect ke Resep
         $new_id = mysqli_insert_id($koneksi);
         
         // --- LOGIKA REDIRECT ---

@@ -33,7 +33,7 @@ if (isset($_POST['tambah_item'])) {
     $yield_baru = floatval($_POST['target_hasil_update']); // Tangkap yield dari form
     
     // Generate kode BOM unik
-    $kode_bom = "BOM-" . $tipe_bom . "-" . rand(100,999);
+    $kode_bom = "RCP-" . $tipe_bom . "-" . rand(100,999);
 
     // Update semua yield pada id_induk ini agar sinkron dengan yang baru diinput
     mysqli_query($koneksi, "UPDATE master_bom SET target_hasil = '$yield_baru' WHERE id_induk = '$id_induk' AND tipe_bom = '$tipe_bom'");

@@ -51,6 +51,11 @@ $role = htmlspecialchars($_SESSION['nama_role'] ?? '');
 $foto = !empty($_SESSION['foto_profil']) 
         ? 'assets/img/profil/' . htmlspecialchars($_SESSION['foto_profil']) 
         : 'assets/img/profil/default.png';
+
+// --- LOGIKA BATAS TANGGAL ---
+$tgl_min = date('Y-m-d'); // Batas minimal: Hari ini
+$tgl_max = date('Y-m-d', strtotime('+1 month')); // Batas maksimal: 1 bulan ke depan
+// ----------------------------
 ?>
 
 <!DOCTYPE html>
@@ -76,7 +81,6 @@ $foto = !empty($_SESSION['foto_profil'])
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
 
-    <!-- TAMBAHAN: Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .btn-outline-primary-thicker { border-width: 2px !important; font-weight: 500 !important; }
@@ -105,7 +109,6 @@ $foto = !empty($_SESSION['foto_profil'])
                     <button class="topbar-toggler more"><i class="gg-more-vertical-alt"></i></button>
                 </div>
             </div>
-            <!-- ── NAVBAR ──────────────────────────────────────── -->
             <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
                 <div class="container-fluid">
                     <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
@@ -153,8 +156,7 @@ $foto = !empty($_SESSION['foto_profil'])
                     </ul>
                 </div>
             </nav>
-            <!-- ── END NAVBAR ─────────────────────────────────────────────── -->
-        </div>
+            </div>
 
         <div class="container">
             <div class="page-inner">
@@ -247,7 +249,6 @@ $foto = !empty($_SESSION['foto_profil'])
     </div>
 </div>
 
-<!-- Modal Tambah Produksi -->
 <div class="modal fade" id="addProduksiModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px;">
@@ -264,19 +265,18 @@ $foto = !empty($_SESSION['foto_profil'])
 
                     <div class="form-group mb-3 text-start">
                         <label class="fw-bold mb-1">Pilih Hasil Produksi</label>
-                        <!-- PERBAIKAN: form-select dan style width 100% -->
                         <select name="id_bsj" id="select_produk_berjenjang" class="form-select" style="width: 100%;" required>
-                            <option value=""></option> <!-- Kosongkan text untuk Select2 Placeholder -->
+                            <option value=""></option>
                             <?php foreach ($item_produksi_list as $item): ?>
                                 <option value="<?= $item['id_bsj'] ?>">[<?= strtoupper($item['tahap']) ?>] <?= htmlspecialchars($item['nama_bsj']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="form-group mb-3 text-start">
-                        <label class="fw-bold mb-1">Jumlah BOM</label>
+                        <label class="fw-bold mb-1">Jumlah Resep</label>
                         <div class="input-group">
                             <input type="number" step="1" class="form-control" name="qty_bom_input" id="qty_bom_input" required placeholder="0">
-                            <span class="input-group-text bg-light fw-bold">BOM</span>
+                            <span class="input-group-text bg-light fw-bold">Resep</span>
                         </div>
                         <div class="mt-3 p-3 bg-light border rounded shadow-sm" id="box_info_produksi" style="display:none;">
                             <small class="text-muted d-block" id="info_yield_berjenjang"></small>
@@ -286,7 +286,7 @@ $foto = !empty($_SESSION['foto_profil'])
                     </div>
                     <div class="form-group text-start">
                         <label class="fw-bold mb-1">Tanggal Produksi</label>
-                        <input type="date" class="form-control" name="tgl_produksi" id="tgl_input" required>
+                        <input type="date" class="form-control" name="tgl_produksi" id="tgl_input" min="<?= $tgl_min ?>" max="<?= $tgl_max ?>" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0 bg-light rounded-bottom">
@@ -298,7 +298,6 @@ $foto = !empty($_SESSION['foto_profil'])
     </div>
 </div>
 
-<!-- Modal Selesai Produksi -->
 <div class="modal fade" id="modalConfirmFinish" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px;">
@@ -343,7 +342,6 @@ $foto = !empty($_SESSION['foto_profil'])
     </div>
 </div>
 
-<!-- Modal Rincian Bahan -->
 <div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="border-radius: 12px;">
@@ -396,7 +394,6 @@ $foto = !empty($_SESSION['foto_profil'])
 <script src="assets/js/kaiadmin.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- TAMBAHAN: Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
@@ -534,7 +531,7 @@ $foto = !empty($_SESSION['foto_profil'])
                     var data = JSON.parse(res);
                     target_per_bom = parseFloat(data.target);
                     nama_satuan = data.satuan;
-                    $('#info_yield_berjenjang').html('<i class="fa fa-info-circle"></i> Info BOM: 1 BOM = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
+                    $('#info_yield_berjenjang').html('<i class="fa fa-info-circle"></i> Info Resep: 1 Resep = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
                     hitungDanCekStok(id);
                 });
             } else {

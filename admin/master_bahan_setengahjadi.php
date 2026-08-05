@@ -287,7 +287,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="langsung_bom" value="1" id="langsung_bom">
                         <label class="form-check-label fw-bold" for="langsung_bom">
-                            Langsung buat BOM setelah simpan?
+                            Langsung buat Resep setelah simpan?
                         </label>
                     </div>
                 </div> 
@@ -380,7 +380,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                Apakah Anda yakin ingin menghapus bahan ini? Seluruh data BOM terkait akan ikut terhapus secara otomatis.
+                Apakah Anda yakin ingin menghapus bahan ini? Seluruh data Resep terkait akan ikut terhapus secara otomatis.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -447,7 +447,7 @@ $foto     = !empty($_SESSION['foto_profil'])
         $(document).on('change', '#langsung_bom', function() {
             var btn = $('#btnSubmitAdd');
             if ($(this).is(':checked')) {
-                btn.text('Simpan & Buat BOM').removeClass('btn-primary').addClass('btn-warning');
+                btn.text('Simpan & Buat Resep').removeClass('btn-primary').addClass('btn-warning');
             } else {
                 btn.text('Simpan').removeClass('btn-warning').addClass('btn-primary');
             }

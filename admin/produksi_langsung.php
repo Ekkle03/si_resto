@@ -37,7 +37,7 @@ $sql_history = "
 $q = mysqli_query($koneksi, $sql_history);
 if ($q) while ($r = mysqli_fetch_assoc($q)) $daftar_produksi[] = $r;
 
-// 2. Query Dropdown: Hanya produk kategori 19 yang sudah punya resep (BOM)
+// 2. Query Dropdown: Hanya produk kategori 19 yang sudah punya resep 
 $item_produksi_list = [];
 $sql_dropdown = "
     SELECT DISTINCT bsj.id_bsj, bsj.nama_bsj 
@@ -51,6 +51,11 @@ if ($q_item) while ($r = mysqli_fetch_assoc($q_item)) $item_produksi_list[] = $r
 
 $pesan = $_SESSION['flash_msg'] ?? '';
 unset($_SESSION['flash_msg']);
+
+// --- LOGIKA BATAS TANGGAL (1 MINGGU) ---
+$tgl_min = date('Y-m-d'); // Batas minimal: Hari ini
+$tgl_max = date('Y-m-d', strtotime('+1 week')); // Batas maksimal: 1 minggu ke depan
+// ---------------------------------------
 
 // ── Navbar: siapkan variabel session ──────────────────────────────────────────
 $nama     = htmlspecialchars($_SESSION['nama_lengkap'] ?? 'Guest');
@@ -259,10 +264,10 @@ $foto     = !empty($_SESSION['foto_profil'])
                         </select>
                     </div>
                     <div class="form-group mb-3">
-                        <label class="fw-bold mb-1">Jumlah BOM</label>
+                        <label class="fw-bold mb-1">Jumlah Resep</label>
                         <div class="input-group">
                             <input type="number" step="1" class="form-control" name="qty_bom_input" id="qty_bom_input" required placeholder="0">
-                            <span class="input-group-text bg-light fw-bold">BOM</span>
+                            <span class="input-group-text bg-light fw-bold">Resep</span>
                         </div>
                         <div class="mt-3 p-3 bg-light border rounded shadow-sm" id="box_info_langsung" style="display:none;">
                             <small class="text-muted d-block" id="info_yield"></small>
@@ -273,7 +278,8 @@ $foto     = !empty($_SESSION['foto_profil'])
                     
                     <div class="form-group mb-1">
                         <label class="fw-bold mb-1">Tanggal Produksi</label>
-                        <input type="date" class="form-control" name="tgl_produksi" id="tgl_input" required>
+                        <input type="date" class="form-control" name="tgl_produksi" id="tgl_input" min="<?= $tgl_min ?>" max="<?= $tgl_max ?>" required>
+                        <small class="text-muted d-block mt-1">* Maksimal perencanaan 1 minggu ke depan.</small>
                     </div>
 
                 </div>
@@ -409,7 +415,7 @@ $foto     = !empty($_SESSION['foto_profil'])
                     var data = JSON.parse(res);
                     target_per_bom = parseFloat(data.target);
                     nama_satuan = data.satuan;
-                    $('#info_yield').html('<i class="fa fa-info-circle"></i> Info BOM: 1 BOM = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
+                    $('#info_yield').html('<i class="fa fa-info-circle"></i> Info Resep: 1 Resep = <b>' + target_per_bom + ' ' + nama_satuan + '</b>');
                     cekStokRealTime();
                 });
             } else {
@@ -482,10 +488,7 @@ $foto     = !empty($_SESSION['foto_profil'])
             
             // CEGAH WASTE LEBIH BESAR DARI RENCANA
             if(waste > maxQty) {
-                // Tampilkan alert (opsional, tapi bagus biar user tahu kenapa dibalikin)
                 alert("Jumlah Waste tidak boleh lebih besar dari Rencana Awal (" + maxQty + ")!");
-                
-                // Kembalikan nilai waste ke batas maksimal
                 $(this).val(maxQty);
                 waste = maxQty;
             }

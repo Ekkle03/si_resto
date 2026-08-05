@@ -55,7 +55,7 @@ $foto     = !empty($_SESSION['foto_profil'])
 <html lang="en">
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Master BOM</title>
+    <title>Master Resep</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo/logo_resto.png" type="image/x-icon" />
 
@@ -168,10 +168,10 @@ $foto     = !empty($_SESSION['foto_profil'])
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header d-flex align-items-center">
-                                    <h4 class="card-title">Data Master BOM</h4>
+                                    <h4 class="card-title">Data Master Resep</h4>
                                     <?php if (can_edit()): ?>
                                     <button class="btn btn-primary btn-round ms-auto" data-bs-toggle="modal" data-bs-target="#modalTambahBom">
-                                        <i class="fa fa-plus"></i> Tambah BOM
+                                        <i class="fa fa-plus"></i> Tambah Resep
                                     </button>
                                     <?php endif; ?>
                                 </div>
@@ -215,7 +215,7 @@ $foto     = !empty($_SESSION['foto_profil'])
 
                                                         <?php if (can_edit()): ?>
                                                         <a href="update_bom.php?id=<?= $r['id_induk'] ?>&tipe=<?= $r['tipe_bom'] ?>" 
-                                                        class="btn btn-primary btn-sm me-1" title="Update BOM">
+                                                        class="btn btn-primary btn-sm me-1" title="Update Resep">
                                                             <i class="fa fa-edit"></i>
                                                         </a>
 
@@ -262,7 +262,7 @@ $foto     = !empty($_SESSION['foto_profil'])
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Pilih Produk (Belum Ada BOM)</h5>
+                    <h5 class="modal-title">Pilih Produk (Belum Ada Resep)</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-start">

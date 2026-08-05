@@ -116,12 +116,13 @@ function is_active($pages, $current_page) {
                 </li>
                 <?php endif; ?>
 
-                <li class="nav-item <?= is_active(['stok_opname.php'], $current_page) ?>">
+                <?php if ($user_role === 'admin'): ?>
+                <li class="nav-item <?= is_active(['stok_opname.php', 'stok_opname_input.php', 'add_opname.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>stok_opname.php">
-                        <i class="fas fa-clipboard-check"></i>
-                        <p>Stok Opname</p>
+                        <i class="fas fa-clipboard-check"></i><p>Stok Opname</p>
                     </a>
                 </li>
+                <?php endif; ?>
 
                 <li class="nav-section">
                     <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
@@ -156,7 +157,7 @@ function is_active($pages, $current_page) {
                     <h4 class="text-section">Master Data</h4>
                 </li>
                 <li class="nav-item <?= is_active(['master_bom.php'], $current_page) ?>">
-                    <a href="<?= $base_url ?>master_bom.php"><i class="fas fa-sitemap"></i><p>Master BOM</p></a>
+                    <a href="<?= $base_url ?>master_bom.php"><i class="fas fa-sitemap"></i><p>Master Resep</p></a>
                 </li>
                 <li class="nav-item <?= is_active(['master_divisi.php'], $current_page) ?>">
                     <a href="<?= $base_url ?>master_divisi.php"><i class="fas fa-building"></i><p>Master Divisi</p></a>

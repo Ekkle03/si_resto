@@ -22,7 +22,7 @@ try {
     mysqli_stmt_store_result($stmt_cek);
     
     if (mysqli_stmt_num_rows($stmt_cek) > 0) {
-        throw new Exception("Bahan Baku tidak bisa dihapus karena sudah terdaftar dalam resep (BOM). Hapus dulu data resepnya!");
+        throw new Exception("Bahan Baku tidak bisa dihapus karena sudah terdaftar dalam resep. Hapus dulu data resepnya!");
     }
     mysqli_stmt_close($stmt_cek);
 

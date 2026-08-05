@@ -3,6 +3,9 @@ session_start();
 include("../config/auth.php");
 include("../config/koneksi_mysql.php");
 
+// Set Zona Waktu lokal biar jamnya akurat
+date_default_timezone_set('Asia/Jakarta');
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id_bsj = (int)$_POST['id_bsj'];
     // 1. Pastikan inputan jumlah BOM ditangkap sebagai float agar bisa 0.5 resep dsb
@@ -11,8 +14,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // --- PERBAIKAN: TANGKAP KODE & TANGGAL DARI FORM ---
     $kode_produksi = mysqli_real_escape_string($koneksi, $_POST['kode_produksi']);
     
-    // Ambil tanggal dari form, lalu gabungkan dengan jam saat ini biar format DateTime valid
     $tgl_input = $_POST['tgl_produksi']; 
+
+    // --- SATPAM VALIDASI TANGGAL (MIN HARI INI, MAX 1 MINGGU) ---
+    $tgl_min = date('Y-m-d');
+    $tgl_max = date('Y-m-d', strtotime('+1 week'));
+
+    if ($tgl_input < $tgl_min) {
+        $_SESSION['flash_msg'] = "Gagal: Tanggal produksi tidak boleh sebelum hari ini!";
+        header("Location: produksi_langsung.php");
+        exit();
+    } elseif ($tgl_input > $tgl_max) {
+        $_SESSION['flash_msg'] = "Gagal: Tanggal produksi maksimal 1 minggu ke depan!";
+        header("Location: produksi_langsung.php");
+        exit();
+    }
+    // -----------------------------------------------------------
+
+    // Ambil tanggal dari form, lalu gabungkan dengan jam saat ini biar format DateTime valid
     $waktu_sekarang = date('H:i:s');
     $tgl_produksi = $tgl_input . ' ' . $waktu_sekarang; 
     // ----------------------------------------------------

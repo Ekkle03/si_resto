@@ -17,7 +17,7 @@ if (mysqli_num_rows($cek_tgl) > 0) {
     $tgl_indo = date('d/m/Y', strtotime($tgl_trx));
     echo json_encode([
         'status'  => 'error', 
-        'message' => "Laporan penjualan untuk tanggal <b>$tgl_indo</b> sudah pernah di-upload.<br><br>Satu tanggal hanya boleh di-upload satu kali. Hapus riwayat tanggal tersebut jika ingin mengulang."
+        'message' => "Laporan penjualan untuk tanggal <b>$tgl_indo</b> sudah pernah di-upload.<br>"
     ]);
     exit();
 }

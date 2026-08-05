@@ -263,7 +263,7 @@ $(document).ready(function() {
             <td class="align-middle text-center"><span id="label_satuan_${rowCount}" class="fw-bold text-dark" style="font-size: 13px;">-</span></td>
             <td><input type="text" name="items[${rowCount}][keterangan_item]" class="form-control" placeholder="Catatan..."></td>
             
-            <td><input type="file" name="foto_${rowCount}" class="form-control form-control-sm" accept="image/*" required></td>
+            <td><input type="file" name="foto_${rowCount}" class="form-control form-control-sm" accept="image/*" capture="environment" required></td>
             
             <td class="text-center"><button type="button" class="btn btn-link btn-danger remove_row"><i class="fa fa-trash"></i></button></td>
         </tr>`;
